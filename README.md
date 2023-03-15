@@ -30,7 +30,7 @@ The easiest way to get answers from ChatGPT is to connect with to the service vi
  3) using unofficial SDK: it's a further option that should be viable (https://github.com/labteral/chatgpt-python)
 
 Option 2 is the most straightfoward from March 2023 since the latest OpenAI API support chats. However, you need to have some sort of credit on your account (wither paid or got for free). This option is implemented in the `openai_api_chatbot.py` script;
-Oprion 1 was my earlier option, it uses a wrapper to connect to your chatGPT account so you need to authenticate manually every time and follow instructions on the authors'github.
+Option 1 was my earlier choice: it uses a wrapper to connect to your chatGPT account so you need to authenticate manually every time and follow instructions on the authors'github. [WARNING] you maight be exposed to fails due to server traffic limitations unless you are subscribed to a premium plan (see more at [ChatGPT Plus](https://openai.com/blog/chatgpt-plus) )
 You'll find this option on `openai_wrapper_chatbot.py` but it's not being updated any longer. 
 
 ## The Idea:
@@ -42,14 +42,15 @@ prompt > OpenAI ChatGPT > answer(text)
 answer *(text)* > IBM Watson/TTS-model > answer *(spoken)*
 
 ## March 13 2023 UPDATE: JARVIS VOICE IS HERE!
-**How i did it**: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edidted the toolbox to save the embeddings which are basically what drives the generation process. They are the "voice IDs" expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>
-Then, I wrote down a trimmed version of CorentinJ's [`JARVIS.py`]. This version can load the embedding learned from Jarvis voice and do basic oprations like Synth and vocode. 
+**How i did it**: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edited the toolbox to save **embeddings**, which are the beginning of  the generation process,. They are the "voice ID" of the targeted people, expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>
+Then, I wrote down a trimmed version of CorentinJ's toolbox, `JARVIS.py`. This version can load the embedding learned from Jarvis voice and do basic oprations like Synth and vocode upon request from any script. 
 
 ![toolbox](https://user-images.githubusercontent.com/49094051/224836993-ee7b4964-e518-46f4-85b1-b25f48f1a78c.PNG)
+<p align="center"> Original Toolbox interface: you can see the embedding </p>
 
 # TUTORIAL
 ## Github overview
-**MAIN** script you should open: if you want to use the latest version of the OpenAI API, `openai_api_chatbot.py`. If you rely on the wrapper open `openai_wrapper_chatbot.py`. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper.py` if you want to use the wrapper. The remaining scripts are supplementary to the voice generation.
+**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API. If you rely on the wrapper open `openai_wrapper_chatbot.py` instead. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper.py` if you want to use the wrapper. The remaining scripts are supplementary to the voice generation.
 
 ## Step 1: installation, accounts, APIs... 
 - verify your graphic engine and CUDA version are compatible with pytorch by running `torch.cuda.is_available()` and `torch.cuda.get_device_name(0)`; 
@@ -57,7 +58,7 @@ Then, I wrote down a trimmed version of CorentinJ's [`JARVIS.py`]. This version 
 - Authorize yorself by copying-pasting the API key inside `openai.api_key = 'your key'` (edit these code lines on the **MAIN** script with your key);
 - get a IBM account up and running by following the youtube video (it require a credit card but there is a service that allows limited usage free of charge);
 - copy-paste the url and the api key when authorizing and setting up the cloud service inside the __main__() function of the principal script;
-- [warn] if you get errors try to run demos ( *_demo.py) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`, if the problem is with the wrapper, check if you followed the instructions at the author's github and try to run `chatgpt install` with an open chrome tab; this got me some troubles at first as well.
+- [WARNING] if you get errors try to run demos ( *_demo.py) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`, if the problem is with the wrapper, check if you followed the instructions at the author's github and try to run `chatgpt install` with an open chrome tab; this got me some troubles at first as well.
 
 
 ## Step 2: Language suppport
