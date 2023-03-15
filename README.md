@@ -6,7 +6,7 @@
 </p>
 
 Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now you can! Well, maybe not the aromor part... This project exploits OpenAI Whisper, OpenAI ChatGPT and IBM Watson.
-* [new] ++ International Language supported (see tutorial downside) ++*
+* *[new] ++ International Language supported (see tutorial downside) ++*
 
 AIM: *many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned will be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later.*
 
@@ -36,13 +36,13 @@ You'll find this option on `openai_wrapper_chatbot.py` but it's not being update
 ## The Idea:
 Pretty straightfoward:
 
-Microphone > pyaudio > .wav   
-.wav > OpenAi Whisper > prompt  
+Microphone > pyaudio > audio.wav   
+audio.wav > OpenAI Whisper > prompt
 prompt > OpenAI ChatGPT > answer(text)  
-answer(text) > IBM Watson/TTS-model > answer(spoken)
+answer *(text)* > IBM Watson/TTS-model > answer *(spoken)*
 
 ## March 13 2023 UPDATE: JARVIS VOICE IS HERE!
-How i did it: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edidted the toolbox to save the embeddings which are basically what drives the generation process. They are the "voice IDs" expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>
+**How i did it**: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edidted the toolbox to save the embeddings which are basically what drives the generation process. They are the "voice IDs" expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>
 Then, I wrote down a trimmed version of CorentinJ's [`JARVIS.py`]. This version can load the embedding learned from Jarvis voice and do basic oprations like Synth and vocode. 
 
 ![toolbox](https://user-images.githubusercontent.com/49094051/224836993-ee7b4964-e518-46f4-85b1-b25f48f1a78c.PNG)
