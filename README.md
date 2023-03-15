@@ -49,24 +49,24 @@ Then, I wrote down a trimmed version of CorentinJ's [`JARVIS.py`]. This version 
 
 # TUTORIAL
 ## Github overview
-The **main** script you should open: if you want to use the latest version, open `openai_api_chatbot.py`. If you rely on the wrapper open `openai_wrapper_chatbot.py`. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible), you should verify the wrapper works properly with `chatgpt_wrapper.py` if you want to use the wrapper.The remaining scripts are supplementary to the voice generation.
+**MAIN** script you should open: if you want to use the latest version of the OpenAI API, `openai_api_chatbot.py`. If you rely on the wrapper open `openai_wrapper_chatbot.py`. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper.py` if you want to use the wrapper. The remaining scripts are supplementary to the voice generation.
 
 ## Step 1: installation, accounts, APIs... 
 - verify your graphic engine and CUDA version are compatible with pytorch by running `torch.cuda.is_available()` and `torch.cuda.get_device_name(0)`; 
-- get the OPENAI API from their officila website. this will power Whisper and ChatGPT. you can authorize yorself by copying-pasting the API key inside `openai.api_key = 'your-key'`
-- edit these code lines on the **main** script with your key;
-- get a IBM account up and running by following the youtube video (it require a credit card but the service is free... It's IBM, you can trus them);
-- copy-paste the url and the api key when authorizing and setting up the cloud service inside the __main__();
-- [warn] if you get errors try to run demos ( *_demo.py) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`, if the problem is with the wrapper, good luck, check if you followe the isntructions at the author's github and try to run `chatgpt install` with an open chrome tab;
+- get the OpenAI API from their officila website. this will power Whisper and ChatGPT. 
+- Authorize yorself by copying-pasting the API key inside `openai.api_key = 'your key'` (edit these code lines on the **MAIN** script with your key);
+- get a IBM account up and running by following the youtube video (it require a credit card but there is a service that allows limited usage free of charge);
+- copy-paste the url and the api key when authorizing and setting up the cloud service inside the __main__() function of the principal script;
+- [warn] if you get errors try to run demos ( *_demo.py) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`, if the problem is with the wrapper, check if you followed the instructions at the author's github and try to run `chatgpt install` with an open chrome tab; this got me some troubles at first as well.
 
 
 ## Step 2: Language suppport
-- To speak with chatgpt in any language you should check if your language is supported by the speech generator at __https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices__;
-- add or change the `voice` variable inside the `say()` function (e.g. for japanese add an entry *'ja':'ja-JP_EmiV3Voice'* for italian add *'it':'it-IT_FrancescaV3Voice'*);
+- To speak with chatgpt in any language you should check if your language is supported by the speech generator at __https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices__; 
+- add or change the `voice` variable inside the `say()` function (e.g. for japanese add an entry *'ja':'ja-JP_EmiV3Voice'* for italian  *'it':'it-IT_FrancescaV3Voice'* is already added since i am italian);
 ![lang](https://user-images.githubusercontent.com/49094051/224839783-85ee6733-53d3-4d11-845c-5eb10c10c3f3.PNG)
-- remember: The loaded Whisper is the medium one. If it performs badly, upgrade to the large one in the _ _main_ _() at `whisper_model = whisper.load_model("large")`;
+- remember: The loaded Whisper is the medium one. If it performs badly in your language, upgrade to the large one in the _ _main_ _() at `whisper_model = whisper.load_model("large")`;
 
-## Step 3: Running (on `openai_api_chatbot.py`):
+## Step 3: Running (`openai_api_chatbot.py`):
 when running, you'll see much information being displayed.
 - When *Star recording* is prompted, ask a quetion with a microphone close by;
 - when you're done press CTRL+C (once);
@@ -85,18 +85,28 @@ when running, you'll see much information being displayed.
 - To summon JARVIS voice just say 'HEY JARVIS' at some point;
 
 
-## History:
+# History:
 - [x] [11 - 2022] Deliver chat-like prompts from python from keyboard
 - [x] [12 - 2022] Deliver chat-like prompts from python with voice
 - [x] [2  - 2023] International language support for prompt and answers
 - [x] [3  - 2023] Jarvis voice setted up
 - [x] [3  - 2023] Save conversation
+
+currently working on:
+- [ ] Background execution & Voice Summoning
 - [ ] International language support for voice commands
 - [ ] Extend voice commands (make a beeter active assistant)
-- [ ] Background execution & Voice Summoning
+
+following:
+- [ ] *project memory*: store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
 - [ ] Improve output displayed info
 - [ ] Improve JARVIS voice performaces though propmpt preprocessing
 - [ ] Create a full stack VirtualAssistant class with memory and local storage access
+- [ ] Add sound feedback of different stages (chimes, beeps...)
+
+### waiting for ChatGPT4 to:
+- [ ] add multimodal input (i.e. "do you think 'this' [holding a paper plane] could fly" -> camera -> ChatGPT4 -> "you should improve the tip of the wings" )
+- [ ] Extend *project memory* to images
 
 
 Have fun!
