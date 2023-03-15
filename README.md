@@ -1,5 +1,5 @@
-# Voice-Conversation-ChatGPT
-**A convesational assistant equipped with a variety of synthetic voices (including J.A.R.V.I.S's)**
+# JARVIS-ChatGPT: A convesational assistant equipped with J.A.R.V.I.S's voice
+**A voice-based interactive assistant equipped with a variety of synthetic voices (including J.A.R.V.I.S's voice from IronMan)**
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/224847586-75810675-c4ad-4bbe-87e0-9c375b8a8aa0.PNG"/>
 
