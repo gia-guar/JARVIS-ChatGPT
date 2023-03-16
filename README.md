@@ -10,7 +10,7 @@ Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now y
 
 AIM: *many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned will be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later.*
 
-What you'll need:
+## What you'll need:
 
  - An OpenAI account 
  - ffmpeg
@@ -23,10 +23,9 @@ What you'll need:
  
 
 ## ChatGPT
-The easiest way to get answers from ChatGPT is to connect with to the service via cloud. To do this you can adopt 2 strategies:
+The easiest way to get answers from ChatGPT is to connect to the service via cloud using an API. To do this you can adopt 2 strategies:
  1) Using unofficial chatgpt-wrapper: someone amazing made this wrapper to have an ongoing conversation on ChatGPT from Command line or from your python script (https://github.com/mmabrouk/chatgpt-wrapper)
- 2) Using your API key you'll be able to send and recieve stuff from the DaVinci003 model (the one that powers ChatGPT itself) [what we are going to do]
- 
+ 2) Using your OpenAI API key you'll be able to send and recieve stuff from the DaVinci003 model (the one that powers ChatGPT itself) [what we are going to do]
  3) using unofficial SDK: it's a further option that should be viable (https://github.com/labteral/chatgpt-python)
 
 Option 2 is the most straightfoward from March 2023 since the latest OpenAI API support chats. However, you need to have some sort of credit on your account (wither paid or got for free). This option is implemented in the `openai_api_chatbot.py` script;
