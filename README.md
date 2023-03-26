@@ -1,7 +1,7 @@
 # JARVIS-ChatGPT: A convesational assistant equipped with J.A.R.V.I.S's voice
 **A voice-based interactive assistant equipped with a variety of synthetic voices (including J.A.R.V.I.S's voice from IronMan)**
 <p align="center">
-  <img src="MJ queries\VirtualAssistant.png"/>
+  <img src="https://user-images.githubusercontent.com/49094051/227788148-a8ff8e06-86a4-41a6-aa53-8b7d6855360c.png"/>
   <span style=color:grey> <i>image by MidJourney AI </i> </span>
 </p>
 
@@ -61,24 +61,28 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 
 ## Step 2: Language suppport
 - To have answers spoken in your language you should first check if your language is supported by the speech generator at __https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices__; 
-- If it's supported, add or change the `voice` variable inside the `say()` function (e.g. for japanese add an entry *'ja':'ja-JP_EmiV3Voice'*, italian  *'it':'it-IT_FrancescaV3Voice'* is already added since I am italian);
-![lang](https://user-images.githubusercontent.com/49094051/224839783-85ee6733-53d3-4d11-845c-5eb10c10c3f3.PNG)
-- Remember: The loaded Whisper is the medium one. If it performs badly in your language, upgrade to the larger one in the _ _main_ _() at `whisper_model = whisper.load_model("large")`;
+- If it's supported, add or change the `voice` variable inside the `say()` function (e.g. for japanese add an entry *'ja':'ja-JP_EmiV3Voice'*, italian  *'it':'it-IT_FrancescaV3Voice'* is already added since I am italian);<br>
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/49094051/224839783-85ee6733-53d3-4d11-845c-5eb10c10c3f3.PNG"/>
+</p>
+
+- Remember: The loaded Whisper is the medium one. If it performs badly in your language, upgrade to the larger one in the ```__main__()``` at `whisper_model = whisper.load_model("large")`; but I hope your GPU memory is large likewise.
 
 ## Step 3: Running (`openai_api_chatbot.py`):
 when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, this is still a beta. Anyway, this is what happens when you hit 'run':
 - Preliminary initializations take place;
-- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT`to summon the assistant. At this point a conversation will begin. The conversation will terminate when you say a stop word or when you stop making question for more than 30 seconds
+- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT`to summon the assistant. At this point a conversation will begin. The conversation will terminate when you say a stop word or when you stop making question for more than 30 seconds<br>
 <p align="center">
-  <img src="Capture.png" />
-</p> 
+  <img src="https://user-images.githubusercontent.com/49094051/227788246-c85bc84c-396f-4e45-9a37-ff9857b0c770.PNG" /><br>
+</p>
 
 - The word *listening...* should then appear. At this point you can make your question. When you are done just wait (3 seconds) for the answer;
 - The script will convert the recorded audio to text using Whisper;
 - The script will then expand the `chat_history` with your question it will send a request with the API an it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
 - If 'Hey Jarvis' has been said `say()` the voice-duplicating toolbox will generate a waveform using Jarvis's embedding;
 <p align="center">
- <img src='Capture3.PNG'/>
+ <img src='https://user-images.githubusercontent.com/49094051/227788211-4257f2e4-8aef-48f4-aae6-174c7ff5007a.PNG'/><br>
   <i>you can ignore the error</i>
 </p>
 
@@ -86,7 +90,7 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - When any of stop key words are said the script will ask chatgpt to give a title to the conversation and will save the chat in a .txt file with the format 'CurrentDate-Title.txt';
 - The assistant will then go back to sleep;
 <p align="center">
- <img src='Capture2.PNG'/>
+ <img src='https://user-images.githubusercontent.com/49094051/227788180-b9da0957-a58b-4c1c-bc34-4a4c8a0e0957.PNG'/><br>
   <i>i made some other prompt, ignore the title mentioning healthcare</i>
 </p>
 
