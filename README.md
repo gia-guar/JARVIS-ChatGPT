@@ -108,9 +108,9 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - [x] [2  - 2023] International language support for prompt and answers
 - [x] [3  - 2023] Jarvis voice setted up
 - [x] [3  - 2023] Save conversation
-- [x] [26 - 2023] Background execution & Voice Summoning
-- [x] [26 - 2023] Improve output displayed info
-- [x] [26 - 2023] Improve JARVIS voice performaces though propmpt preprocessing
+- [x] [3 - 2023] Background execution & Voice Summoning
+- [x] [3 - 2023] Improve output displayed info
+- [x] [3 - 2023] Improve JARVIS voice performaces though propmpt preprocessing
 
 currently working on:
 - [ ] International language support for voice commands
