@@ -72,7 +72,7 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 ## Step 3: Running (`openai_api_chatbot.py`):
 when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, this is still a beta. Anyway, this is what happens when you hit 'run':
 - Preliminary initializations take place;
-- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be english. At this point a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/edit/main/README.md#key-words) or when you stop making question for more than 30 seconds (still unstable, needs to be imrpved) <br>
+- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be english. At this point a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main#key-words) or when you stop making question for more than 30 seconds (still unstable, needs to be imrpved) <br>
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/227788246-c85bc84c-396f-4e45-9a37-ff9857b0c770.PNG" /><br>
 </p>
