@@ -1,14 +1,25 @@
 # JARVIS-ChatGPT: A convesational assistant equipped with J.A.R.V.I.S's voice
 **A voice-based interactive assistant equipped with a variety of synthetic voices (including J.A.R.V.I.S's voice from IronMan)**
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/49094051/224847586-75810675-c4ad-4bbe-87e0-9c375b8a8aa0.PNG"/>
-
+  <img src="MJ queries\VirtualAssistant.png"/>
+  <span style=color:grey> <i>image by MidJourney AI </i> </span>
 </p>
 
 Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now you can! Well, maybe not the aromor part... This project exploits OpenAI Whisper, OpenAI ChatGPT and IBM Watson.
-* *[new] ++ International Language supported (see tutorial downside) ++*
 
-AIM: *many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned will be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later.*
+---
+## March 26 2026 UPDATE: Background execution and Hands Free control
+This update is focused on making the assistant more viable in everyday life. 
+ - You can now follow some instructions you can find at <span style="color:green"> BootJARVIS.pdf </span>. to run the main script automaitcally when the system boots;
+ - There no more need to press Ctrl+C to deliver mic recordings to Wisper. To read about hows *Hands Free* and *Summoning* work like, go check the tutorial or the update history (UpdateHistory.md);
+ - minor improvements:
+    1. Adding the package pytts3x for text to speech when IBM is un-available (monthly usage expired);
+    2. improved CLI outputs;
+    3. improved descriptions;
+---
+<p align="center"> <strong> PROJECT MOTIVATION:  </strong> </p> 
+
+*Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned will be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later.*
 
 ## What you'll need:
 
@@ -17,9 +28,9 @@ AIM: *many times ideas come in the worst moment and they fade away before you ha
  - python virtual enviroment (my venv runs on python 3.7 in case you'd need this info)
  - Some credit to spend on chatGPT (you can get three months of free usage by making signing up to OpenAI) (optional)
  - An OpenAI API key (optional, but strongly suggested)
- - An IBM Cloud account to exploit their cloud-based text-to speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) 
+ - An IBM Cloud account to exploit their cloud-based text-to speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) (optional)
  - mic and speaker (if you have many microphones you might be reuired to tell which audio you plan to use in the `get_audio.py`) 
- - CUDA capable grpahic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2)
+ - CUDA capable graphic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2)
  
 
 ## Connecting with ChatGPT: 3 ways
@@ -32,20 +43,8 @@ Option 2 is the most straightfoward from March 2023 since the latest OpenAI API 
 Option 1 was my earlier choice: it uses a wrapper to connect to your chatGPT account so you need to authenticate manually every time and follow instructions on the authors'github. [WARNING] you might be exposed to fails due to server traffic limitations unless you are subscribed to a premium plan (see more at [ChatGPT Plus](https://openai.com/blog/chatgpt-plus) )
 You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not being updated any longer. 
 
-## The Idea:
-Pretty straightfoward:
 
-Microphone > pyaudio > audio.wav   
-audio.wav > OpenAI Whisper > prompt
-prompt > OpenAI ChatGPT > answer(text)  
-answer *(text)* > IBM Watson/TTS-model > answer *(spoken)*
 
-## March 13 2023 UPDATE: JARVIS VOICE IS HERE!
-**How i did it**: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edited the toolbox to save **embeddings**, which are the beginning of  the generation process,. They are the "voice ID" of the targeted people, expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>
-Then, I wrote down a trimmed version of CorentinJ's toolbox, `JARVIS.py`. This version can load the embedding learned from Jarvis voice and do basic oprations like Synth and vocode upon request from any script. 
-
-![toolbox](https://user-images.githubusercontent.com/49094051/224836993-ee7b4964-e518-46f4-85b1-b25f48f1a78c.PNG)
-<p align="center"> Original Toolbox interface: you can see the embedding </p>
 
 # TUTORIAL
 ## GitHub overview
@@ -69,21 +68,34 @@ Then, I wrote down a trimmed version of CorentinJ's toolbox, `JARVIS.py`. This v
 ## Step 3: Running (`openai_api_chatbot.py`):
 when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, this is still a beta. Anyway, this is what happens when you hit 'run':
 - Preliminary initializations take place;
-- When *Start recording* is prompted, ask a quetion with a microphone close by;
-- When you're done press CTRL+C (once);
+- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT`to summon the assistant. At this point a conversation will begin. The conversation will terminate when you say a stop word or when you stop making question for more than 30 seconds
+<p align="center">
+  <img src="Capture.png" />
+</p> 
+
+- The word *listening...* should then appear. At this point you can make your question. When you are done just wait (3 seconds) for the answer;
 - The script will convert the recorded audio to text using Whisper;
-- The script will then expand the `chat_history` with your question it will send a request with the API an it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 10 15 seconds, consider explicitly ask for short quetsions if you are in a hurry);
-- If Hey Jarvis has been said `say()` the voice-duplicating toolbox will generate a waveform using Jarvis's embedding. 
-- Elsewise the taks is submitted to IBM Text-To-Speech services;
-- When any of stop key words are said the script will ask chatgpt to give a title to the conversation and will save the chat in a .txt file with the format 'Current-Date-Title.txt'
+- The script will then expand the `chat_history` with your question it will send a request with the API an it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
+- If 'Hey Jarvis' has been said `say()` the voice-duplicating toolbox will generate a waveform using Jarvis's embedding;
+<p align="center">
+ <img src='Capture3.PNG'/>
+  <i>you can ignore the error</i>
+</p>
 
-![Capture](https://user-images.githubusercontent.com/49094051/224842933-9d9bcdb2-8483-496c-a083-775ecdaa18aa.PNG)
-![Capture2](https://user-images.githubusercontent.com/49094051/224842418-1caa61c5-a0a7-45ed-a563-e1bbde1c204e.PNG)
+- Elsewise, the taks is submitted to IBM Text-To-Speech services or pyttsx3;
+- When any of stop key words are said the script will ask chatgpt to give a title to the conversation and will save the chat in a .txt file with the format 'CurrentDate-Title.txt';
+- The assistant will then go back to sleep;
+<p align="center">
+ <img src='Capture2.PNG'/>
+  <i>i made some other prompt, ignore the title mentioning healthcare</i>
+</p>
 
-<br>
-### Key words:
+
+# Key words:
 - to stop just say 'OK THANKS' at some point;
 - To summon JARVIS voice just say 'HEY JARVIS' at some point;
+
+<span style="color:grey">*not ideal i know but works for now*</span>
 
 
 # History:
@@ -92,16 +104,16 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - [x] [2  - 2023] International language support for prompt and answers
 - [x] [3  - 2023] Jarvis voice setted up
 - [x] [3  - 2023] Save conversation
+- [x] [26 - 2023] Background execution & Voice Summoning
+- [x] [26 - 2023] Improve output displayed info
+- [x] [26 - 2023] Improve JARVIS voice performaces though propmpt preprocessing
 
 currently working on:
-- [ ] Background execution & Voice Summoning
 - [ ] International language support for voice commands
 - [ ] Extend voice commands (make a beeter active assistant)
 
 following:
 - [ ] *project memory*: store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
-- [ ] Improve output displayed info
-- [ ] Improve JARVIS voice performaces though propmpt preprocessing
 - [ ] Create a full stack VirtualAssistant class with memory and local storage access
 - [ ] Add sound feedback of different stages (chimes, beeps...)
 
@@ -109,7 +121,9 @@ following:
 - [ ] add multimodal input (i.e. "do you think 'this' [holding a paper plane] could fly" -> camera -> ChatGPT4 -> "you should improve the tip of the wings" )
 - [ ] Extend *project memory* to images
 
+<span style="color:grey">*Check the HistoryUpdate.md of the project for more insights.*</span>
 
 Have fun!
 
 if you have questions contact me at gianmarco.guarnier@hotmail.com
+<p align="right"><i>Gianmarco Guarnier<i></p>
