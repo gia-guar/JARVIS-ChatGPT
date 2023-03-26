@@ -10,8 +10,8 @@ Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now y
 ---
 ## March 26 2026 UPDATE: Background execution and Hands Free control
 This update is focused on making the assistant more viable in everyday life. 
- - You can now follow some instructions you can find at <span style="color:green"> BootJARVIS.pdf </span>. to run the main script automaitcally when the system boots;
- - There no more need to press Ctrl+C to deliver mic recordings to Wisper. To read about hows *Hands Free* and *Summoning* work like, go check the tutorial or the update history (UpdateHistory.md);
+ - You can now follow some instructions you can find at <span style="color:green"> BootJARVIS.pdf </span> to run the main script automatically when the system boots;
+ - There's no more need to press Ctrl+C to deliver mic recordings to Whisper. To read about hows *Hands Free* and *Summoning* work, go check the tutorial below or the update history (UpdateHistory.md);
  - minor improvements:
     1. Adding the package pytts3x for text to speech when IBM is un-available (monthly usage expired);
     2. improved CLI outputs;
@@ -19,15 +19,15 @@ This update is focused on making the assistant more viable in everyday life.
 ---
 <p align="center"> <strong> PROJECT MOTIVATION:  </strong> </p> 
 
-*Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned will be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later.*
+*Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned should be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later. In addition, it might interface with some external gadgets (IoT) but that's extra.*
 
 ## What you'll need:
 
- - An OpenAI account 
- - ffmpeg
- - python virtual enviroment (my venv runs on python 3.7 in case you'd need this info)
- - Some credit to spend on chatGPT (you can get three months of free usage by making signing up to OpenAI) (optional)
- - An OpenAI API key (optional, but strongly suggested)
+ - An [OpenAI](https://openai.com) account 
+ - [ffmpeg](https://ffmpeg.org/) 
+ - python virtual enviroment (my venv runs on python 3.7, requirements.txt are compatible with this version only)
+ - Some credit to spend on chatGPT (you can get three months of free usage by making signing up to OpenAI) (strognly suggested)
+ - An OpenAI API key (strongly suggested)
  - An IBM Cloud account to exploit their cloud-based text-to speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) (optional)
  - mic and speaker (if you have many microphones you might be reuired to tell which audio you plan to use in the `get_audio.py`) 
  - CUDA capable graphic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2)
@@ -48,7 +48,7 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 
 # TUTORIAL
 ## GitHub overview
-**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API. If you rely on the wrapper open `openai_wrapper_chatbot.py` instead. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper_demo.py` if you want to use the wrapper. The remaining scripts are supplementary to the voice generation and should not be edited.
+**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API. If you rely on the wrapper open `openai_wrapper_chatbot.py` instead. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper_demo.py` if you want to use the wrapper. `get_audio.py` stores all the functions to handle mic interactions.<br>The remaining scripts are supplementary to the voice generation and should not be edited.
 
 ## Step 1: installation, accounts, APIs... 
 - Verify your graphic engine and CUDA version are compatible with pytorch by running `torch.cuda.is_available()` and `torch.cuda.get_device_name(0)`; 
@@ -72,7 +72,7 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 ## Step 3: Running (`openai_api_chatbot.py`):
 when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, this is still a beta. Anyway, this is what happens when you hit 'run':
 - Preliminary initializations take place;
-- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT`to summon the assistant. At this point a conversation will begin. The conversation will terminate when you say a stop word or when you stop making question for more than 30 seconds<br>
+- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be english. At this point a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/edit/main/README.md#key-words) or when you stop making question for more than 30 seconds (still unstable, needs to be imrpved) <br>
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/227788246-c85bc84c-396f-4e45-9a37-ff9857b0c770.PNG" /><br>
 </p>
@@ -80,7 +80,7 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - The word *listening...* should then appear. At this point you can make your question. When you are done just wait (3 seconds) for the answer;
 - The script will convert the recorded audio to text using Whisper;
 - The script will then expand the `chat_history` with your question it will send a request with the API an it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
-- If 'Hey Jarvis' has been said `say()` the voice-duplicating toolbox will generate a waveform using Jarvis's embedding;
+- If 'Hey Jarvis' has been said, the `say()` function will use the voice-duplicating toolbox to generate a waveform using Jarvis's voice embedding;
 <p align="center">
  <img src='https://user-images.githubusercontent.com/49094051/227788211-4257f2e4-8aef-48f4-aae6-174c7ff5007a.PNG'/><br>
   <i>you can ignore the error</i>
@@ -96,7 +96,7 @@ when running, you'll see much information being displayed. I'm costantly strivin
 
 
 # Key words:
-- to stop just say 'OK THANKS' at some point;
+- to stop or save the chat, just say 'OK THANKS' at some point;
 - To summon JARVIS voice just say 'HEY JARVIS' at some point;
 
 <span style="color:grey">*not ideal i know but works for now*</span>
