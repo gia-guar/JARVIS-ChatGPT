@@ -78,11 +78,10 @@ def say(text, VoiceIdx='jarvis',JARVIS_voice=None):
         if not os.path.isdir('saved_chats'): os.mkdir("saved_chats")
         with open(os.path.join(os.getcwd(), 'answers','speech.mp3'),'wb') as audio_file:
             try:
-                print('\n[assistant]: '+text)
                 res = tts.synthesize(text, accept='audio/mp3', voice=voices[VoiceIdx]).get_result()
                 audio_file.write(res.content)
             except:
-                print('*!* IBM credit likely ended *!*  > using pyttsx3 for voice generation')
+                print('*!* IBM credit likely ended *!*  > using pyttsx3 for voice generation)')
                 print('\n[assistant]: '+text)
                 engine = pyttsx3.init()
                 engine = change_voice(engine, lang_id=VoiceIdx)
@@ -101,7 +100,6 @@ def say(text, VoiceIdx='jarvis',JARVIS_voice=None):
         pygame.mixer.music.load(os.path.join('voices','empty.mp3'))
         os.remove("./answers/speech.mp3")
     else:
-        print('\n[assistant]: '+text)
         JARVIS_voice.synthesize(text)
         JARVIS_voice.vocode()
 
@@ -164,8 +162,8 @@ if __name__=="__main__":
     ## IBM CLOUD
     ## 1. AUTH
     print('Authorizing IBM Cloud...')
-    url ='your-IBM-Cloud-service-url'
-    apikey = 'your-IBM-Cloud-API-key'
+    url ='your-ibm-cloud-service-url'
+    apikey = 'your-ibm-cloud-api-key'
     # Setup Service
     print('Setting up cloud authenticator...')
     authenticator = IAMAuthenticator(apikey)
@@ -181,25 +179,40 @@ if __name__=="__main__":
     # INITIATE JARVIS
     print('initiating JARVIS voice...')
 
-    JARVIS_voice = JARVIS.init_jarvis()
+    JARVIS_voice = JARVIS.init_jarvis() 
 
-    print("opening a new conversation...\n")
-    chat_history = [{"role": "system", "content": "You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words."}]
+    # costants and knobs
+    DEFAULT_CHAT = [{"role": "system", "content": "You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words."}]
+    CHAT_LONG_ENOUGH = 4
 
+    # vars init
+    print("preparing a new conversation...\n")
+    chat_history = DEFAULT_CHAT
     SleepTimer = -10000
+    GoToSleep = True
     ConversationStarted = False
 
     while True:
         
         ## MIC TO TEXT
-        myaudio.record_to_file('output.wav',SleepTimer)
+        GoToSleep = myaudio.record_to_file('output.wav',SleepTimer)
+
+        # Many of these variables will be incorporated in an ASSISTANT class
+        if GoToSleep: 
+            SleepTimer = -10000
+            if len(chat_history>CHAT_LONG_ENOUGH): save_chat(chat_history)
+            chat_history = DEFAULT_CHAT
+            continue
 
         if not(ConversationStarted):
             SleepTimer = time.perf_counter()
             ConversationStarted= True
 
-        question, detected_language = myaudio.whisper_wav_to_text('output.wav',whisper_model)
-        
+        try:
+            question, detected_language = myaudio.whisper_wav_to_text('output.wav',whisper_model)
+        except Exception as e:
+            say(str(e))
+
         # check exit command
         if "THANKS" in question.upper():
             print('\nclosing chat...')

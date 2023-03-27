@@ -65,6 +65,7 @@ def PassiveListening(KeyWords=["elephant"], verbosity=False):
         except Exception as e:
             if verbosity: print(str(e))
     
+    # if any keyword is present in the query return True (awake the assistant)
     if any(item in query.split() for item in KeyWords): return True
     else: return False
 
@@ -76,7 +77,7 @@ def record(KeyWords=["elephant"], SleepTimer=-10000, verbosity=False):
     RESPONSE_TIME = 3
     SLEEP_DELAY = 30
 
-    # if there isn't any conversation ongoing (last ten minutes) wait for the triggering word
+    # if there isn't any conversation ongoing (last ten minutes) enter sleep automatically
     now = time.perf_counter()
     if now - SleepTimer > 600:
         isAwake = False
@@ -99,10 +100,11 @@ def record(KeyWords=["elephant"], SleepTimer=-10000, verbosity=False):
 
     frames = []
     try:
+        GoToSleep = False
         silence_time = 0
         speaked = False
-
         print("listening...")
+
         while True:
             delta = time.perf_counter()
             data = stream.read(CHUNK)
@@ -121,7 +123,8 @@ def record(KeyWords=["elephant"], SleepTimer=-10000, verbosity=False):
                     raise KeyboardInterrupt   
                 
                 if silence_time>SLEEP_DELAY:
-                    break
+                    GoToSleep=True
+                    raise KeyboardInterrupt 
             else:
                 speaked = True
                 silence_time = 0
@@ -135,17 +138,17 @@ def record(KeyWords=["elephant"], SleepTimer=-10000, verbosity=False):
     stream.stop_stream()
     stream.close()
     p.terminate()
-
-    return sample_width, frames
+    return sample_width, frames, GoToSleep 
 
 def record_to_file(file_path, SleepTimer = -10000):
-	wf = wave.open(file_path, 'wb')
-	wf.setnchannels(CHANNELS)
-	sample_width, frames = record(SleepTimer=SleepTimer)
-	wf.setsampwidth(sample_width)
-	wf.setframerate(RATE)
-	wf.writeframes(b''.join(frames))
-	wf.close()
+    wf = wave.open(file_path, 'wb')
+    wf.setnchannels(CHANNELS)
+    sample_width, frames, GoToSleep = record(SleepTimer=SleepTimer)
+    wf.setsampwidth(sample_width)
+    wf.setframerate(RATE)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+    return GoToSleep
 
 
 def demo():
