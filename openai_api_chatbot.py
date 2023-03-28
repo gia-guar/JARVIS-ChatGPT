@@ -200,7 +200,7 @@ if __name__=="__main__":
         # Many of these variables will be incorporated in an ASSISTANT class
         if GoToSleep: 
             SleepTimer = -10000
-            if len(chat_history>CHAT_LONG_ENOUGH): save_chat(chat_history)
+            if len(chat_history)>CHAT_LONG_ENOUGH: save_chat(chat_history)
             chat_history = DEFAULT_CHAT
             continue
 
