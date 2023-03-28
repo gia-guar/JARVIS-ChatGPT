@@ -30,7 +30,7 @@ This update is focused on making the assistant more viable in everyday life.
  - An OpenAI API key (strongly suggested)
  - An IBM Cloud account to exploit their cloud-based text-to speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) (optional)
  - mic and speaker (if you have many microphones you might be reuired to tell which audio you plan to use in the `get_audio.py`) 
- - CUDA capable graphic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2)
+ - CUDA capable graphic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2 ```pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113```)
  
 
 ## Connecting with ChatGPT: 3 ways
@@ -108,18 +108,19 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - [x] [2  - 2023] International language support for prompt and answers
 - [x] [3  - 2023] Jarvis voice setted up
 - [x] [3  - 2023] Save conversation
-- [x] [3 - 2023] Background execution & Voice Summoning
-- [x] [3 - 2023] Improve output displayed info
-- [x] [3 - 2023] Improve JARVIS voice performaces though propmpt preprocessing
+- [x] [3  - 2023] Background execution & Voice Summoning
+- [x] [3  - 2023] Improve output displayed info
+- [x] [3  - 2023] Improve JARVIS voice performaces though propmpt preprocessing
 
 currently working on:
 - [ ] International language support for voice commands
 - [ ] Extend voice commands (make a beeter active assistant)
+- [ ] Add sound feedback of different stages (chimes, beeps...)
 
 following:
 - [ ] *project memory*: store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
 - [ ] Create a full stack VirtualAssistant class with memory and local storage access
-- [ ] Add sound feedback of different stages (chimes, beeps...)
+- [ ] Include other NLP free models if ChatGPT is unavailable (my credit is about to end)
 
 ### waiting for ChatGPT4 to:
 - [ ] add multimodal input (i.e. "do you think 'this' [holding a paper plane] could fly" -> camera -> ChatGPT4 -> "you should improve the tip of the wings" )
