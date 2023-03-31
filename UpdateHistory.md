@@ -1,18 +1,24 @@
 # Update History
 
 ## April 1st 2023 UPDATE: Introducing the Local Search Engine, sounds and more
-I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (``cosine_similarity``) making use of embeddings: *an embedding is a vector (list) of floating point numbers. The distance between two vectors measures their relatedness. Small distances suggest high relatedness and large distances suggest low relatedness. [OpenAI - what are embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings).*
+I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (``cosine_similarity``) making use of embeddings: *an embedding is a vector (list) of floating point numbers. The distance between two vectors measures their relatedness. Small distances suggest high relatedness and large distances suggest low relatedness. [OpenAI - what are embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings). You can find these inside ``Assistant\tools.py``*
 
 The LocalSearchEngine adopt a 4 step algorithm to compute the relevancy between a key and a text:
 1. **Tags extractions**: ask ChatGPT to extract up to 10 topics (tags) that are discussed in the text. This will reduce the noise in the conversation leading to more relevant, high value content;
 2. **Translation**: OpenAI Embeddings work in any language but, to maximize the pterormance, the tags are translated in the same language of the key;
 3. **Emebdding computation**: using ``text-embedding-ada-002`` to extract the Embeddings from both keys and translated tags;
-4. **Cosine Similarity Computation**: use OpenAI ``cosine_similarity()`` to compute the similarity index;
+4. **Cosine Similarity Computation**: use OpenAI ``cosine_similarity()`` to compute the similarity index. Alternatively you coul also ask naively to ChatGPT where some text is relevant to a key or not but the results weren't as good. Sill you could ask for a quick search ``quick_search()``;
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/49094051/229243205-337b7bfa-2e7b-43b1-a770-62b524367dc6.PNG" /><br>
+  <i><span style="color:grey">Custom DataFrame showing the search results with key "physics and space exploration" between some conversation I had.<br> Here you can also see the tags that were extrapolated. Notice that some of them are in italian, since the conversation was held in my native language </span></i> 
+ </p>
+
 
 Furthermore, a ``Translator`` class was implemented as addidtional tool. 
 
 other important updates"
-- introduced a ``VirtualAsssistant`` object to allow a more intuitive ``main`` flow and handle most of the requests;
+- introduced a ``VirtualAsssistant`` object to allow a more intuitive ``main`` flow and handle most of the requests ``Assistant\VirtualAssistant.py``;
 - rearranged the directory structure to 'hide' some backend code;
 
 other minor updates:
