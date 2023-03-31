@@ -98,13 +98,33 @@ class VoiceCloner:
         self.synthesizer = Synthesizer(self.syn_dir)
 
     def synthesize(self, text):
-        texts=text.split('\n')
+        """ 
+        text preprocessing:
+            - split every sentence
+            - 100/130 words per minute => ~ 2 words every second. 
+        
+            The synthesizer expect to generate outputs that are between 5 and 12 seconds long 
+            This means between 10 and 24 words.
+        """
+        """
+        n = 15
+        texts = []
+        chunk =  ''
+        for i,word in enumerate(text.split()):
+            if i%n!=0:
+                chunk += word+' '
+            else:
+                texts.append(chunk)
+                chunk=''
+        """
+        texts = text.split('.')
+        # synth init
         if self.synthesizer is None:
-            model_dir = Path('saved_models\default')
+            model_dir = Path(os.path.join(os.getcwd(), 'saved_models', 'default'))
             checkpoints_dir = model_dir.joinpath("taco_pretrained")
             self.synthesizer = Synthesizer(checkpoints_dir)
             
-        with open(os.path.join('saved_models','embeds','embed_9.npy'), 'rb') as f:
+        with open(os.path.join(os.getcwd(), 'saved_models','embeds','embed_9.npy'), 'rb') as f:
             embed = np.load(f)
             
         embeds = [embed] * len(texts)

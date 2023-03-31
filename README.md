@@ -6,27 +6,30 @@
 </p>
 
 Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now you can! Well, maybe not the aromor part... This project exploits OpenAI Whisper, OpenAI ChatGPT and IBM Watson.
-
----
-## March 26 2026 UPDATE: Background execution and Hands Free control
-This update is focused on making the assistant more viable in everyday life. 
- - You can now follow some instructions you can find at <span style="color:green"> BootJARVIS.pdf </span> to run the main script automatically when the system boots;
- - There's no more need to press Ctrl+C to deliver mic recordings to Whisper. To read about hows *Hands Free* and *Summoning* work, go check the tutorial below or the update history (UpdateHistory.md);
- - minor improvements:
-    1. Adding the package pytts3x for text to speech when IBM is un-available (monthly usage expired);
-    2. improved CLI outputs;
-    3. improved descriptions;
----
 <p align="center"> <strong> PROJECT MOTIVATION:  </strong> </p> 
 
 *Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developping a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or from your phone, it should run constantly in the background and when summoned should be able to generate meaningful answers (with a badass voice) as well as interfacing with the pc or a server and save/read/write files that can be accessed later. In addition, it might interface with some external gadgets (IoT) but that's extra.*
+
+---
+## APRIL 1st 2023 UPDATE: Introducing the Local Search Engine, sounds and more
+I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (see UpdateHistory.md for further details). Furthermore, a Translator class was implemented as addidtional tool. 
+
+other important updates"
+- introduced a ``VirtualAsssistant`` object to allow a more intuitive ``main`` flow;
+- rearranged the directory structure to 'hide' some backend code;
+
+other minor updates:
+- introduced sounds! Now you can have sound feedback of what is happening with the Assistant. Seeing is beliving;
+- Made overall code slightly more efficient; 
+
+---
 
 ## What you'll need:
 
  - An [OpenAI](https://openai.com) account 
  - [ffmpeg](https://ffmpeg.org/) 
  - python virtual enviroment (my venv runs on python 3.7, requirements.txt are compatible with this version only)
- - Some credit to spend on chatGPT (you can get three months of free usage by making signing up to OpenAI) (strognly suggested)
+ - Some credit to spend on ChatGPT (you can get three months of free usage by making signing up to OpenAI) (strognly suggested)
  - An OpenAI API key (strongly suggested)
  - An IBM Cloud account to exploit their cloud-based text-to speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) (optional)
  - mic and speaker (if you have many microphones you might be reuired to tell which audio you plan to use in the `get_audio.py`) 
@@ -36,11 +39,11 @@ This update is focused on making the assistant more viable in everyday life.
 ## Connecting with ChatGPT: 3 ways
 The easiest way to get answers from ChatGPT is to connect to the service via cloud using an API. To do this you can adopt 2 strategies:
  1) Using unofficial chatgpt-wrapper: someone amazing made this wrapper to have an ongoing conversation on ChatGPT from Command line or from your python script (https://github.com/mmabrouk/chatgpt-wrapper)
- 2) Using your OpenAI API key you'll be able to send and recieve stuff from the DaVinci003 model (the one that powers ChatGPT itself) [what we are going to do]
+ 2) Using your OpenAI API key you'll be able to send and recieve stuff from the *DaVinci003 model* (the one that powers ChatGPT3) or from the *ChatGPT3.5 Turbo engine*[what we are going to do]
  3) using unofficial SDK: it's a further option that should be viable (https://github.com/labteral/chatgpt-python)
 
 Option 2 is the most straightfoward from March 2023 since the latest OpenAI API support chats. However, you need to have some sort of credit on your account (wether paid or got for free when subscribing). This option is implemented in the `openai_api_chatbot.py` script;
-Option 1 was my earlier choice: it uses a wrapper to connect to your chatGPT account so you need to authenticate manually every time and follow instructions on the authors'github. [WARNING] you might be exposed to fails due to server traffic limitations unless you are subscribed to a premium plan (see more at [ChatGPT Plus](https://openai.com/blog/chatgpt-plus) )
+Option 1 was my earlier choice: it uses a wrapper to connect to your chatGPT account so you need to authenticate manually every time and follow instructions on the authors'github. It is a sub optimal option because you can't have the system integrated at PC startup since it needs login. Moreover you might be exposed to fails due to server traffic limitations unless you are subscribed to a premium plan (see more at [ChatGPT Plus](https://openai.com/blog/chatgpt-plus) )
 You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not being updated any longer. 
 
 
@@ -91,12 +94,12 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - The assistant will then go back to sleep;
 <p align="center">
  <img src='https://user-images.githubusercontent.com/49094051/227788180-b9da0957-a58b-4c1c-bc34-4a4c8a0e0957.PNG'/><br>
-  <i>i made some other prompt, ignore the title mentioning healthcare</i>
+  <i><span style="color:grey">i made some other prompts, ignore the title mentioning healthcare</span> </i>
 </p>
 
 
 # Key words:
-- to stop or save the chat, just say 'OK THANKS' at some point;
+- to stop or save the chat, just say 'THANKS' at some point;
 - To summon JARVIS voice just say 'HEY JARVIS' at some point;
 
 <span style="color:grey">*not ideal i know but works for now*</span>
@@ -111,22 +114,25 @@ when running, you'll see much information being displayed. I'm costantly strivin
 - [x] [3  - 2023] Background execution & Voice Summoning
 - [x] [3  - 2023] Improve output displayed info
 - [x] [3  - 2023] Improve JARVIS voice performaces though propmpt preprocessing
+- [x] [4  - 2023] Introducing: *Project memory*: store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
+- [x][4  - 2023] Create a full stack ```VirtualAssistant``` class with memory and local storage access
+- [x] Add sound feedbacks at different stages (chimes, beeps...)
 
 currently working on:
 - [ ] International language support for voice commands
 - [ ] Extend voice commands (make a beeter active assistant)
-- [ ] Add sound feedback of different stages (chimes, beeps...)
+- [ ] expand *Memory*
 
 following:
-- [ ] *project memory*: store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
-- [ ] Create a full stack VirtualAssistant class with memory and local storage access
 - [ ] Include other NLP free models if ChatGPT is unavailable (my credit is about to end)
+- [ ] Connect the system to internet
+- [ ] Refine memory and capabilities
 
 ### waiting for ChatGPT4 to:
 - [ ] add multimodal input (i.e. "do you think 'this' [holding a paper plane] could fly" -> camera -> ChatGPT4 -> "you should improve the tip of the wings" )
-- [ ] Extend *project memory* to images
+- [ ] Extend *project memory* to images, pdfs, papers...
 
-<span style="color:grey">*Check the HistoryUpdate.md of the project for more insights.*</span>
+<span style="color:grey">*Check the UpdateHistory.md of the project for more insights.*</span>
 
 Have fun!
 
