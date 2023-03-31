@@ -12,7 +12,7 @@ Ever dreamed to ask a hyper intelligent system tips to improve your armor? Now y
 
 ---
 ## APRIL 1st 2023 UPDATE: Introducing the Local Search Engine, sounds and more
-I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (see UpdateHistory.md for further details). Furthermore, a Translator class was implemented as addidtional tool. 
+I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool will be precious in future, when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (see UpdateHistory.md for further details). Furthermore, a Translator class was implemented as addidtional tool. 
 
 other important updates"
 - introduced a ``VirtualAsssistant`` object to allow a more intuitive ``main`` flow;
