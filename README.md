@@ -51,20 +51,20 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 
 # TUTORIAL
 ## GitHub overview
-**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API. If you rely on the wrapper open `openai_wrapper_chatbot.py` instead. `da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `chatgpt_wrapper_demo.py` if you want to use the wrapper. `get_audio.py` stores all the functions to handle mic interactions.<br>The remaining scripts are supplementary to the voice generation and should not be edited.
+**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API. If you rely on the wrapper open `openai_wrapper_chatbot.py` instead. `demos\da_vinci_demo.py` is a simple script that sends single prompts to chatgpt (no chat possible); you should verify the wrapper works properly with `demos\chatgpt_wrapper_demo.py` if you want to use the wrapper. `Assistant\` stores all the functions to handle mic interactions and Assistant status.<br>The remaining scripts are supplementary to the voice generation and should not be edited.
 
 ## Step 1: installation, accounts, APIs... 
 - Verify your graphic engine and CUDA version are compatible with pytorch by running `torch.cuda.is_available()` and `torch.cuda.get_device_name(0)`; 
 - Get the OpenAI API from their official website. This will allow to send and recieve material to Whisper and ChatGPT. 
-- Authorize yorself by copying-pasting the API key inside `openai.api_key = 'your key'` (edit these code lines on the **MAIN** script with your key);
+- Authorize yourself by copying-pasting the API key inside `openai.api_key = 'your-key'` (edit these code lines on the **MAIN** script with your key);
 - Get a IBM Cloud account up and running by following the youtube video (it will require a credit card at some point but there is a service that allows limited usage free of charge);
-- Copy-paste the url and the api key when authorizing and setting up the cloud service inside the __main__() function of the principal script;
-- [WARNING] If you get errors try to run demos ( *_demo.py) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`; if the problem is with the wrapper, check if you followed the instructions at the author's github and try to run `chatgpt install` with an open chrome tab; this got me some trouble at first as well.
+- Copy-paste the url and the api key when authorizing and setting up the cloud service inside the principal script;
+- [WARNING] If you get errors try to run demos ( ``/demos``) to see if the probelm is with openai/wrapper. In case: check `pip openai --version`; if the problem is with the wrapper, check if you followed the instructions at the author's github and try to run `chatgpt install` with an open chrome tab; this got me some troubles at first as well.
 
 
 ## Step 2: Language suppport
 - To have answers spoken in your language you should first check if your language is supported by the speech generator at __https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices__; 
-- If it's supported, add or change the `voice` variable inside the `say()` function (e.g. for japanese add an entry *'ja':'ja-JP_EmiV3Voice'*, italian  *'it':'it-IT_FrancescaV3Voice'* is already added since I am italian);<br>
+- If it's supported, add or change the ``self.languages = {'en': "English",'it': "Italian",# add yours}`` inside `Assistant/VirtualAssistant.py``.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/224839783-85ee6733-53d3-4d11-845c-5eb10c10c3f3.PNG"/>
@@ -73,17 +73,17 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 - Remember: The loaded Whisper is the medium one. If it performs badly in your language, upgrade to the larger one in the ```__main__()``` at `whisper_model = whisper.load_model("large")`; but I hope your GPU memory is large likewise.
 
 ## Step 3: Running (`openai_api_chatbot.py`):
-when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, this is still a beta. Anyway, this is what happens when you hit 'run':
-- Preliminary initializations take place;
-- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be english. At this point a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main#key-words) or when you stop making question for more than 30 seconds (still unstable, needs to be imrpved) <br>
+when running, you'll see much information being displayed. I'm costantly striving to improve the readability of the execution, so forgive slight variations of the screens below. Anyway, this is what generally happens when you hit 'run':
+- Preliminary initializations take place: the Assistant is created following default parameters (you can edit them inside the main);
+- When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be english. At this point a conversation will begin and you can speak in whatever language you want (if you followed step 2). <br>
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/227788246-c85bc84c-396f-4e45-9a37-ff9857b0c770.PNG" /><br>
 </p>
 
-- The word *listening...* should then appear. At this point you can make your question. When you are done just wait (3 seconds) for the answer;
-- The script will convert the recorded audio to text using Whisper;
-- The script will then expand the `chat_history` with your question it will send a request with the API an it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
-- If 'Hey Jarvis' has been said, the `say()` function will use the voice-duplicating toolbox to generate a waveform using Jarvis's voice embedding;
+- The word *listening...* should then appear. At this point, a conversation is began and you can make your question. When you are done just wait (``RESPONSE_TIME = 3`` seconds) for the question to be subitted;
+- The some functions (`Assistant/get_audio.py`) will convert the recorded audio to text using Whisper;
+- The Assistant will expands it's internal `chat_history` with your question it will send a request with the OpenAI API, and it will update the history as soon as it recieves a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
+- If 'Hey Jarvis' has been said, the Assistatn will 'speak' using the voice-duplicating toolbox to generate a waveform from Jarvis's voice embedding;
 <p align="center">
  <img src='https://user-images.githubusercontent.com/49094051/227788211-4257f2e4-8aef-48f4-aae6-174c7ff5007a.PNG'/><br>
   <i>you can ignore the error</i>
