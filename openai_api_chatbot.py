@@ -53,7 +53,6 @@ if __name__=="__main__":
             # THIS STUFF WILL NEED TO BE DONE BY SOME SORT OF "PROMPT MANAGER" (next on the list)
             # check exit command
             if "THANKS" in question.upper():
-                jarvis.save_chat()
                 jarvis.go_to_sleep()
                 continue
             
