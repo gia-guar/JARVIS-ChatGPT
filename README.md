@@ -26,9 +26,8 @@ Minor updates:
  - Bug fixes;
  - Added ``langid``, ``TextBlob`` and ``translators`` to get faster translations and reduce GPT credit usage;
  - Improved Speech-to-text by reducing the possible languages to the ones specified in the Assistant model;
-
-
 ---
+
 ## What you'll need:
  - An [OpenAI](https://openai.com) account 
  - [ffmpeg] python virtual environment (my venv runs on python 3.7, requirements.txt are compatible with this version only)
