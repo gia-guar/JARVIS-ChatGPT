@@ -28,6 +28,8 @@ Minor updates:
  - Added ``langid``, ``TextBlob`` and ``translators`` to get faster translations and reduce GPT credit usage;
  - Improved Speech-to-text by reducing the possible languages to the ones specified in the Assistant model;
  <br>
+ 
+ 
 ---
 
 ## What you'll need:
@@ -60,12 +62,15 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 
 ## Step 1: installation, accounts, APIs... 
 ### Enviroment
-1. Make a new, empty venv with Python 3.7;
+1. Make a new, empty venv with Python 3.7 and activate it (.\venv_name\Scripts\activate );
 2. ```pip install venv_requirements.txt```; This might take some time (~45 mins); if you encounter conflicts on specific packages, install them manually without the ```==<version>```;
-3. install PyTorch: ```pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113``` (mind your CUDA version);
-4. install [TTS](https://github.com/coqui-ai/tts);
-5. download the Assistant and other scripts from this repo;
-6. Check everything works *(following)*
+3. install manually PyTorch: ```pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113``` (mind your CUDA version);
+4. install manually Whisper from OpenAI with pip ```install whisper-openai```
+5. install [TTS](https://github.com/coqui-ai/tts);
+6. run [their script](https://github.com/coqui-ai/TTS/blob/dev/README.md#-python-api) and check everything is working (it should download some models);
+7. KEEP ONLY ```TTS``` and ```TTS.egg-info``` folders
+8. download the Assistant and other scripts from this repo **DO NOT** owerwrite the  ```TTS``` and ```TTS.egg-info``` folders or your code might fail;
+9. Check everything works *(following)*
 <br>
 
 ### Checks
@@ -152,6 +157,31 @@ following:
 <span style="color:grey">*Check the [UpdateHistory.md](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/blob/main/UpdateHistory.md) of the project for more insights.*</span>
 
 Have fun!
+
+# ERRORS and FAQs
+### INSTALL: I have conflicting packages while installing *venv_requirements.txt*, what should I do? <br>
+1)Make sure you have the right Python versison (3.7) on the venv (>python --version with the virual enviroment activated). 2) Try to edit the *venv_requirements.txt* an removing the version requirements of the incriminated dependancies. 3) Remove the package from the txt file and install them manually afterwards.<br>
+
+### INSTALL: I meet an error when running openai_api_chatbot.py saying: TypeError: LoadLibrary() argument 1 must be str, not None what's wrong? <br>
+The problem is concenring Whisper. There are many ways of installing it and the venv_requirements.txt installs it in the wrong way. You shoul re-install it manually as described at ome step of the [installation tutorial](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT#step-1-installation-accounts-apis)<br>
+
+### INSTALL: I can't import 'openai.embeddings_utils' or 'openai.datalib'<br>
+This happens because pip sometimes won't download some files. I had this problem and solved by manually downloading [embeddings_utils.py](https://github.com/openai/openai-python/blob/main/openai/embeddings_utils.py) and [datalib.py](https://github.com/openai/openai-python/blob/main/openai/datalib.py) inside ./<your_venv>/Lib/site-packages/openai/ <br>
+
+### INSTALL: I encounter error ModuleNotFoundError: No module named '<some module>' <br>
+Requirements are not updated every commit. While this might generate errors you can quickly install the missing modules, at the same time it keeps the environment clean from conflicts when I try new packages (and I try LOTS of them) <br>
+
+### RUN TIME: I encounter some OOM memory when loading the Whisper model, what does it means?<br>
+It means the model you selected is too big for your CUDA device memory. Unfortunately there is not much you can do about it except loading a smaller model. If the smaller model do not satisfy you, you might want to speak 'clearer' or make longer prompts to let the model predict more accurately what you are saying. This sounds inconvenient but, in my case, greatly improved my english-speaking :) <br>
+
+### RUN TIME: Max lenght tokens for ChatGPT-3.5-Turbo is 4096 but recieved ... tokens.<br>
+This is a bug still present, don't expect to have ever long conversations with your assistant as it will simply won't have enough memory to remeber the whoole conversation at some point. A fix is in development, it might consist of adopting a 'sliding windwows' approach even if it might cause repetition of some concepts. <br>
+
+### GENERAL: I finished my OPENAI credit / demo, what can I do? <br>
+1: pay. The price is not that bad and you might en up paying few dollars a month since pricing depends on usage. 2) create a new account every 3 months :)
+
+### GENERAL: For how long will this project be updated? 
+Right now (April 2023) the project is at it's
 
 if you have questions you can contact me at gianmarco.guarnier@hotmail.com
 <p align="right"><i>Gianmarco Guarnier<i></p>
