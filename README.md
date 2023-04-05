@@ -63,8 +63,8 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 1. Make a new, empty venv with Python 3.7;
 2. ```pip install venv_requirements.txt```; This might take some time (~45 mins); if you encounter conflicts on specific packages, install them manually without the ```==<version>```;
 3. install PyTorch: ```pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113``` (mind your CUDA version);
-4. install [TTS](https://github.com/coqui-ai/tts) (once the setup.py is done, delete everything besides the venv);
-5. download the material of this repo which contains the relevant material from TTS;
+4. install [TTS](https://github.com/coqui-ai/tts);
+5. download the Assistant and other scripts from this repo;
 6. Check everything works *(following)*
 <br>
 
