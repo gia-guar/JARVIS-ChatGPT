@@ -12,6 +12,7 @@ Secondly, I've made some improvements to the Local Search Engine. Now it can be 
  5. Finally, the system will rank all the files from the most relevant to the least pertinent;
  6. The natural following step would be to recover one of the files, but this is still a work in progress;
 <br>
+
 Minor updates:
  - Bug fixes;
  - Added ``langid``, ``TextBlob`` and ``translators`` to get faster translations and reduce GPT credit usage;
