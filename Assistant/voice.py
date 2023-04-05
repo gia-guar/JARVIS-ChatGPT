@@ -2,8 +2,9 @@
 import pyttsx3
 from ibm_watson import TextToSpeechV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
-import Assistant.JARVIS as JARVIS
-import pygame
+from TTS.api import TTS
+import os
+
 
 class Voice:
     def __init__(self, **kwargs):   
@@ -30,9 +31,15 @@ class Voice:
         engine = pyttsx3.init()
 
         # SYNTHETIC VOICES
-        synth = JARVIS.init_jarvis()
+
+        # # CorentinJ     - Real Time Voice Cloning github (https://github.com/CorentinJ/Real-Time-Voice-Cloning)
+        #[deprecated] synth = JARVIS.init_jarvis()   
+
+        # CoquiAI         - coqui-ai/TTS (https://github.com/coqui-ai/tts)
+        synth = TTS(model_name=os.path.join("tts_models/multilingual/multi-dataset/your_tts"), progress_bar=False, gpu=True)  
 
         self.tts_service = [tts]
+        self.path = kwargs['voice_id']
         self.synthetic_voice = synth
         self.offline = engine
     

@@ -1,5 +1,23 @@
 # Update History
+---
+## APRIL 5th 2023 UPDATE: New Voice Models (F.R.I.D.A.Y), Expanding Local Search Engine and More
+I finally decided to upgrade the voice model from @ConrentinJ to [@CoquiAI](https://github.com/coqui-ai/tts). This model works on the same principle (Transfer Learning from Speaker Verification to Multispeaker Text-To-Speech Synthesis) but is much faster, more versatile and offers more options to explore. Right now, I just want to push this version live, it works by default with one of the models offered by the TTS package. In the future, I'll explore the differences and strengths of all the other models (you can do it by changing the name of the model when the Voice is initialized inside ``Voice.py``, as shown in the ``tts_demo.py``). Moreover, this model is multilanguage so if you find any clean interviews of voice actors you can use them as models when the answer needs to be spoken in your (or any) language.
+<br>
+Secondly, I've made some improvements to the Local Search Engine. Now it can be accessed with voice. In particular:
+ 1. Once you've made a prompt, ```LocalSearchEngine.analyze_prompt()``` will try to interpret the prompt and it will produce a flag, ranging from 1 to N (where N is the number of Actions the Assistant can make);
+ 2. If the flag corresponds to **"1"** the associated action will be **"Look for a file"** and that protocol will be triggered;
+ 3. The system will first communicate its intentions and if you confirm, the assistant will ask you to provide some search keywords;
+ 4. The system will utilize a pandas DataFrame, where some topic tags are associated to the conversation, to detect relevant discussions;
+ 5. Finally, the system will rank all the files from the most relevant to the least pertinent;
+ 6. The natural following step would be to recover one of the files, but this is still a work in progress;
+<br>
+Minor updates:
+ - Bug fixes;
+ - Added ``langid``, ``TextBlob`` and ``translators`` to get faster translations and reduce GPT credit usage;
+ - Improved Speech-to-text by reducing the possible languages to the ones specified in the Assistant model;
 
+
+---
 ## April 1st 2023 UPDATE: Introducing the Local Search Engine, sounds and more
 I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (``cosine_similarity``) making use of embeddings: *an embedding is a vector (list) of floating point numbers. The distance between two vectors measures their relatedness. Small distances suggest high relatedness and large distances suggest low relatedness. [OpenAI - what are embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings). You can find these inside ``Assistant\tools.py``*
 

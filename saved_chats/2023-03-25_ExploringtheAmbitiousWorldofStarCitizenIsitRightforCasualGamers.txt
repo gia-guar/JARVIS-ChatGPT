@@ -1,0 +1,13 @@
+system: You are a helpful assistant.
+user: What can you tell me about the video game Star Citizen?
+assistant: Star Citizen is an ambitious multiplayer space trading and combat game developed by Cloud Imperium Games. It was announced in 2011 and has been in development ever since. The game is built using Amazon Lumberyard engine and features an expansive, persistent universe where players can engage in various activities like exploration, mining, trade, combat, and more.
+
+One of the game's unique features is its ability to seamlessly switch between first-person and third-person views, as well as the ability to explore and interact with planets, ships, and stations.
+
+The game has generated a lot of excitement among fans of space sim games, and it has raised over $350 million through crowdfunding, making it one of the most successful crowdfunding campaigns for a video game. However, the game has also faced several delays and controversies, with some critics questioning its development timeline and management. Despite this, the game continues to have a passionate following and is still in development.
+user: Would you suggest it to a person who is loving about open-world games but doesn't want to spend a lot of time in a game?
+assistant: As of now, Star Citizen is a very ambitious game that is still in development and is not yet considered a fully released game. While it promises to have an open-world gameplay experience, it may not be ideal for a person who isn't interested in investing a lot of time in the game due to its complex gameplay mechanics and features. 
+
+Additionally, since the game is still in development, it may not be fully optimized and may have bugs or glitches that could make it frustrating to play. 
+
+If the person is not particularly interested in space sim games or doesn't want to spend a lot of time in a game, there are several other open-world games that they might enjoy such as The Elder Scrolls V: Skyrim, Grand Theft Auto V, Red Dead Redemption 2, or Fallout 4 which offer a more traditional open-world gameplay experience.

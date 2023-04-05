@@ -1,26 +1,30 @@
 # imports for chats
 import  pygame
 import os
+import re
 
+import pandas as pd
 from datetime import datetime
 import copy
 import openai
 import time
+import langid
+import Assistant.get_audio as myaudio
 
-from Assistant.voice import *
-from Assistant.tools import Translator, LocalSearchEngine
+from .voice import *
+from .tools import Translator, LocalSearchEngine
 
 # imports for audio
-import whisper
 import wave
 import pyaudio
 import speech_recognition as sr
 import audioop
-import math
 import time
+import sys
+from contextlib import contextmanager 
       
 class VirtualAssistant:
-    DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words."}]
+    DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
     RESPONSE_TIME = 3 #seconds
     SLEEP_DELAY = 30 #seconds
 
@@ -44,18 +48,38 @@ class VirtualAssistant:
         except:
             print('OpenAI API key not found')
 
+        # STATUS
         self.DIRECTORIES={
             'CHAT_DIR': os.path.realpath(os.path.join(os.getcwd(), 'saved_chats')),
-            'SOUND_DIR':os.path.realpath(os.path.join(os.getcwd(), 'Assistant', 'sounds'))
+            'SOUND_DIR':os.path.realpath(os.path.join(os.getcwd(), 'Assistant', 'sounds')),
+            'VOICE_DIR':os.path.realpath(os.path.join(os.getcwd(), 'Assistant', 'voices'))
         }
 
-        # TEXT 
+        self.functions=[
+            'find a file: file can store past conversations, textual information',
+            'respond: provide an answer to a question',
+            'adjust settings',
+            'find a directory inside the Computer',
+            'save this conversation for the future',
+            'start a new conversation and delete the current one',
+            'check on internet',
+            'None of the above',
+        ]
+        
+
+        # TEXT and VOICE
+        if 'voice_id' in kwargs.keys():
+            kwargs['voice_id'] = os.path.join(self.DIRECTORIES["VOICE_DIR"], kwargs['voice_id']+'.wav')
+        else:
+            kwargs['voice_id'] = os.path.join(self.DIRECTORIES["VOICE_DIR"], 'default.wav')
+
         self.voice = Voice(**kwargs)
         self.translator = Translator(model=model)
         self.answer_engine = model
         self.search_engine = LocalSearchEngine(
             embed_model = embed_model, 
-            tldr_model = model)
+            tldr_model = model,
+            translator_model='translators')
         
         self.languages = {
             'en': "English",
@@ -75,7 +99,7 @@ class VirtualAssistant:
         self.ears = sr.Recognizer()
         self.interpreter = whisper_model
 
-        
+    
         # init finished
         self.play('system_online_bleep.mp3')
     
@@ -106,6 +130,25 @@ class VirtualAssistant:
 
         self.play('sleep.mp3', PlayAndWait=True)
 
+    def analyze_prompt(self):
+        context ="""You are a prompt manager. A number must always be present in your answer. You have access to a suite of actions and decide which associated number is required. Your actions:"""
+        for i, function in enumerate(self.functions):
+            context += f"\n{i+1} - {function};"
+        context += "\nYou can answer only with numbers. A number must always be present in your answer."
+
+        CHAT = [{"role": "system", "content": context},
+                {"role": "user", "content":f"PROMPT: '{self.current_conversation[-1]['content']}'"}]
+
+        response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    temperature=0,
+                    max_tokens=10,
+                    messages=CHAT)
+        
+        return response['choices'][0]['message']['content']
+
+
+
 
     # CONVERSATION ################################################################################
 
@@ -114,9 +157,11 @@ class VirtualAssistant:
             print('forgetting the last conversation')
         self.current_conversation = self.DEFAULT_CHAT
 
-    def get_answer(self, question, update=True):
+    def expand_conversation(self, role, content): self.current_conversation.append({"role":role, "content":content})
+
+    def get_answer(self, question, update=False):
         if update==True:
-            self.current_conversation.append({"role":"user", "content":question})
+            self.expand_conversation(role="user", content=question)
             temp = self.current_conversation
         else:
             temp = copy.deepcopy(self.current_conversation)
@@ -128,7 +173,7 @@ class VirtualAssistant:
             messages=temp)
         
         answer = API_response['choices'][0]['message']['content']
-        self.current_conversation.append({"role": "assistant", "content":answer})
+        self.expand_conversation(role="assistant", content=answer)
 
         self.last_interaction = time.perf_counter()
         pygame.mixer.music.stop()
@@ -153,8 +198,94 @@ class VirtualAssistant:
                 f.write(message["role"]+ ': ' + message["content"]+'\n')
             f.close()
 
+
+
+
+    # ACTIONS ##################################################################################
+
+    def confirm_choice(self, confirm_question, lang_id=None):
+        prompt = self.current_conversation[-1]["content"]
+        if lang_id is None: lang_id = langid.classify(prompt)[0]
+        confirm_question = self.translator.translate(confirm_question, lang_id)       
+
+        self.say(confirm_question, VoiceIdx=lang_id)
+        self.record_to_file('output.wav')
+        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
+        
+        if self.search_engine.compute_similarity(key='yes',text=response)>0.8:
+            self.expand_conversation(role="assistant", content=confirm_question)
+            self.expand_conversation(role="user", content=response)
+            return True
+        else:
+            return False
+
+
+    def find_file(self):
+        prompt = self.current_conversation[-1]["content"]
+        lang_id = langid.classify(prompt)[0]
+
+        # confirm choice first:
+        confirm_question = "I am about to begin a search, should I proceed?"
+        if not(self.confirm_choice(confirm_question, lang_id = lang_id)):
+            self.play('aborting.mp3')
+            return -1
+        
+        # provide keywords:
+        provide_tag_question = "Provide the argument of the search"
+        provide_tag_question = self.translator.translate(provide_tag_question, lang_id)
+        self.say(provide_tag_question, VoiceIdx=lang_id)
+        self.record_to_file('output.wav')
+        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
+        self.expand_conversation(role="assistant", content=provide_tag_question)
+        self.expand_conversation(role="user", content=response)
+
+        if len(response)<5:
+            # return to main if silence
+            return
+        
+        keywords = re.sub('[^0-9a-zA-Z]+', ' ', response)
+        keywords = keywords.split()
+
+        self.play('thinking.mp3', loop=True)
+        summary = self.search_engine.accurate_search(key=keywords, from_csv=True)
+        self.play('wake.mp3')
+
+        lang_id = langid.classify(prompt)[0]
+        text = self.translator.translate("Research completed:", lang_id)
+        
+        all_files = pd.read_csv(os.path.join(self.search_engine.default_dir,'DATAFRAME.csv'))
+
+
+        for i in range(len(summary.file_names)):
+            try:
+                idx = all_files.file_names.index(summary.file_names[i])
+                topics = all_files.tags[idx]
+            except:
+                topics = f'error - {summary.file_names[i]} not found in {all_files.file_names}'
+
+            text += f"\n - {i+1}): {topics.split()[:3]};"
+
+        self.say(self.translator.translate(f'In the most relevant conversation the following topic were discussed: {summary.tags[0]}', lang_id),
+            VoiceIdx=lang_id)
+
+        print("\n")
+
+        self.expand_conversation(role="assistant", content=text)
+
+        # work in progress: asking to actually load the conversation 
+        # work in progress: making recovering the last conversation more straightfoward
+        return summary
+
+
+
+        
+
+
     # SPEAK ####################################################################################
-    def play(self, fname, PlayAndWait=False):
+    def play(self, fname, PlayAndWait=False, loop=False):
+        if loop: loop=-1
+        else: loop = 0
+
         if pygame.mixer.get_init() is None: pygame.mixer.init()
 
         try:
@@ -163,7 +294,7 @@ class VirtualAssistant:
             print(e)
             return
         pygame.mixer.music.set_volume(0.5)
-        pygame.mixer.music.play()
+        pygame.mixer.music.play(loops=loop)
 
         if PlayAndWait:
             while(pygame.mixer.music.get_busy()):pass
@@ -190,27 +321,34 @@ class VirtualAssistant:
             
             # go offline if fail
             except:
-                print('*!* IBM credit likely ended *!*  > using pyttsx3 for voice generation)')
+                print('*!* IBM credit likely ended *!*  > using pyttsx3 for voice generation')
                 print(f'\n[assistant]: {text}')
                 
-                self.voice.offline = self.change_offline_lang(lang_id=VoiceIdx)
-                self.voice.offline.say(text)
-                self.voice.offline.runAndWait()
+                try:
+                    self.voice.offline = self.change_offline_lang(lang_id=VoiceIdx)
+                    self.voice.offline.say(text)
+                    self.voice.offline.runAndWait()
+                except:
+                    text = self.translator.translate(input=text, language='english')
+                    self.voice.offline = self.change_offline_lang(lang_id='en')
+                    self.voice.offline.say(text)
+                    self.voice.offline.runAndWait()
 
         else:
-            self.voice.synthetic_voice.synthesize(text)
-            self.voice.synthetic_voice.vocode()
+            print(f'\n[assistant]: {text}')   
+            with suppress_stdout():
+                self.voice.synthetic_voice.tts_to_file(text=text, speaker_wav=self.voice.path, language="en", file_path=os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'))
+                self.play(os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'), PlayAndWait=True)
 
-
-    # works with pyttsx3 text to speech engine
+    # allows pyttsx3's text to speech engine to change language
     def change_offline_lang(self, lang_id):
-        
-        for voice in self.voice.offline.getProperty('voices'):
-            if self.languages[lang_id] in voice.name:
-                self.voice.offline.setProperty('voice', voice.id)
-                return self.voice.offline
-            
-        self.say('This language does not belong to my principles, please add it', VoiceIdx='en')
+        try:
+            for voice in self.voice.offline.getProperty('voices'):
+                if self.languages[lang_id] in voice.name:
+                    self.voice.offline.setProperty('voice', voice.id)
+                    return self.voice.offline
+        except Exception as e:      
+            print('error: ',e)
     
 
     # LISTEN #############################################################################################
@@ -291,3 +429,14 @@ class VirtualAssistant:
         stream.close()
         p.terminate()
         return sample_width, frames
+    
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
