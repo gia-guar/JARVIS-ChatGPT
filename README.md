@@ -163,7 +163,7 @@ Have fun!
 1)Make sure you have the right Python versison (3.7) on the venv (>python --version with the virual enviroment activated). 2) Try to edit the *venv_requirements.txt* an removing the version requirements of the incriminated dependancies. 3) Remove the package from the txt file and install them manually afterwards.<br>
 
 ### INSTALL: I meet an error when running openai_api_chatbot.py saying: TypeError: LoadLibrary() argument 1 must be str, not None what's wrong? <br>
-The problem is concenring Whisper. There are many ways of installing it and the venv_requirements.txt installs it in the wrong way. You shoul re-install it manually as described at ome step of the [installation tutorial](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT#step-1-installation-accounts-apis)<br>
+The problem is concenring Whisper. There are many ways of installing it and the venv_requirements.txt installs it in the wrong way. You shoul re-install it manually as described at some step of the [installation tutorial](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT#step-1-installation-accounts-apis)<br>
 
 ### INSTALL: I can't import 'openai.embeddings_utils' or 'openai.datalib'<br>
 This happens because pip sometimes won't download some files. I had this problem and solved by manually downloading [embeddings_utils.py](https://github.com/openai/openai-python/blob/main/openai/embeddings_utils.py) and [datalib.py](https://github.com/openai/openai-python/blob/main/openai/datalib.py) inside ./<your_venv>/Lib/site-packages/openai/ <br>
