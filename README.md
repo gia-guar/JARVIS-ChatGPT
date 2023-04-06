@@ -8,8 +8,9 @@
 Ever dreamed to ask hyper-intelligent system tips to improve your armor? Now you can! Well, maybe not the armor part... This project exploits OpenAI Whisper, OpenAI ChatGPT and IBM Watson.
 <p align="center"> <strong> PROJECT MOTIVATION:  </strong> </p> 
 
-*Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is developing a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or your phone, it should run constantly in the background and when summoned should be able to generate meaningful answers (with a badass voice) as well as interface with the pc or a server and save/read/write files that can be accessed later. It should be able to run research, gather material from the internet (extract content from HTML pages, transcribe Youtube videos, find scientific papers...) and provide summaries that can be used as context to make informed decisions. In addition, it might interface with some external gadgets (IoT) but that's extra.*
+*Many times ideas come in the worst moment and they fade away before you have the time to explore them better. The objective of this project is to develop a system capable of giving tips and opinions in quasi-real-time about anything you ask. The ultimate assistant will be able to be accessed from any authorized microphone inside your house or your phone, it should run constantly in the background and when summoned should be able to generate meaningful answers (with a badass voice) as well as interface with the pc or a server and save/read/write files that can be accessed later. It should be able to run research, gather material from the internet (extract content from HTML pages, transcribe Youtube videos, find scientific papers...) and provide summaries that can be used as context to make informed decisions. In addition, it might interface with some external gadgets (IoT) but that's extra.*
 <br>
+
 ---
 ## APRIL 5th 2023 UPDATE: New Voice Models (F.R.I.D.A.Y), Expanding Local Search Engine and More
 I finally decided to upgrade the voice model from @ConrentinJ to [@CoquiAI](https://github.com/coqui-ai/tts). This model works on the same principle (Transfer Learning from Speaker Verification to Multispeaker Text-To-Speech Synthesis) but is much faster, more versatile and offers more options to explore. Right now, I just want to push this version live, it works by default with one of the models offered by the TTS package. In the future, I'll explore the differences and strengths of all the other models (you can do it by changing the name of the model when the Voice is initialized inside ``Voice.py``, as shown in the ``tts_demo.py``). Moreover, this model is multilanguage so if you find any clean interviews of voice actors you can use them as models when the answer needs to be spoken in your (or any) language.
@@ -34,11 +35,12 @@ Minor updates:
 
 ## What you'll need:
  - An [OpenAI](https://openai.com) account 
- - [ffmpeg] python virtual environment (my venv runs on python 3.7, requirements.txt are compatible with this version only)
- - Some credit to spend on ChatGPT (you can get three months of free usage by making signing up to OpenAI) (strongly suggested)
- - An OpenAI API key (strongly suggested)
+ - [ffmpeg](https://ffmpeg.org/) 
+ - python virtual environment (my venv runs on python 3.7, venv_requirements.txt are compatible with this version only)
+ - Some credit to spend on ChatGPT (you can get three months of free usage by making signing up to OpenAI)
+ - An OpenAI API key
  - An IBM Cloud account to exploit their cloud-based text-to-speech models (tutorial: https://www.youtube.com/watch?v=A9_0OgW1LZU) (optional);
- - A (reasonably) fast internet connection (most of the code relies on API so a slower connection might result in a longer time to respond)
+ - A (reasonably) fast internet connection (most of the code relies on API so a slower connection might result in longer time to respond)
  - mic and speaker (if you have many microphones you might be required to tell which audio you plan to use in the `get_audio.py`) 
  - CUDA capable graphic engine (my Torch Version: 1.12.1+cu113, CUDA v11.2 ```pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113```)
  - Patience :)
@@ -88,7 +90,7 @@ You'll find this option implemented at `openai_wrapper_chatbot.py` but it's not 
 - If it's supported, add or change the languages inside ```VirtualAssistant.__init__()``` ;<br>
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/49094051/224839783-85ee6733-53d3-4d11-845c-5eb10c10c3f3.PNG"/>
+  <img src="https://user-images.githubusercontent.com/49094051/230505516-4dba0f29-f45a-4311-aa54-1d93fca25de5.PNG"/>
 </p>
 
 - Remember: The loaded Whisper is the medium one. If it performs badly in your language, upgrade to the larger one in the ```__main__()``` at `whisper_model = whisper.load_model("large")`; but I hope your GPU memory is large likewise.
@@ -98,24 +100,24 @@ When running, you'll see much information being displayed. I'm constantly strivi
 - Preliminary initializations take place, you should hear a chime when the Assistant is ready;
 - When *awaiting for triggering words* is displayed you'll need to say `ELEPHANT` to summon the assistant. This magic word can be switched, but it needs to be English. At this point, a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main#key-words) or when you stop making questions for more than 30 seconds (still unstable, needs to be improved) <br>
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/49094051/227788246-c85bc84c-396f-4e45-9a37-ff9857b0c770.PNG" /><br>
+  <img src="https://user-images.githubusercontent.com/49094051/230505896-c8a2ff80-4265-41e4-a6d5-e9f56d156afa.PNG" /><br>
+  <img src="https://user-images.githubusercontent.com/49094051/230506756-287a1d6b-9652-4c66-bea8-cd75380ab45b.PNG" /><br>
 </p>
 
 - After the magic word is said, the word *listening...* should then appear. At this point, you can make your question. When you are done just wait (3 seconds) for the answer to be submitted;
 - The script will convert the recorded audio to text using Whisper;
-- The text will be analyzed and a decision will be made. If the Assistant believes you want to perform an action (like looking for a past conversation) the respective protocols will be initated; 
+- The text will be analyzed and a decision will be made. If the Assistant believes you want to perform an action (like looking for a past conversation) the respective protocols will be initiated; 
 - Elsewise, the script will then expand the `chat_history` with your question it will send a request with the API and it will update the history as soon as it receives a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
 - The `say()` function will perform voice duplication to speak with Jarvis/Someone's voice; if the argument is not in English, IBM Watson will send the response from one of their nice text-to-speech models. If everything fails, the functions will rely on pyttsx3 which is a fast yet not as cool alternative;
 <p align="center">
- <img src='https://user-images.githubusercontent.com/49094051/227788211-4257f2e4-8aef-48f4-aae6-174c7ff5007a.PNG'/><br>
-  <i>you can ignore the error</i>
+
 </p>
 
 - When any of the stop keywords are said, the script will ask ChatGPT to give a title to the conversation and will save the chat in a .txt file with the format 'CurrentDate-Title.txt';
 - The assistant will then go back to sleep;
 <p align="center">
  <img src='https://user-images.githubusercontent.com/49094051/227788180-b9da0957-a58b-4c1c-bc34-4a4c8a0e0957.PNG'/><br>
-  <i><span style="color:grey">I made some other prompts, ignore the title mentioning healthcare</span> </i>
+  <i><span style="color:grey">I made some prompts and closed the conversation</span> </i>
 </p>
 
 
@@ -137,10 +139,11 @@ When running, you'll see much information being displayed. I'm constantly strivi
 - [x] [3  - 2023] Improve JARVIS's voice performances through prompt preprocessing
 - [x] [4  - 2023] Introducing: *Project memory* store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
 - [x][4  - 2023] Create a full stack ```VirtualAssistant``` class with memory and local storage access
-- [x] Add sound feedback at different stages (chimes, beeps...)
-- [x] International language support for voice commands (beta)
+- [x][4  - 2023] Add sound feedback at different stages (chimes, beeps...)
+- [x][4  - 2023] International language support for voice commands (beta)
 
 currently working on:
+- [ ] Making a step-by-step tutorial 
 - [ ] fixing chat length bug (when the chat is too long it can't be processed by ChatGPT 3.5 Turbo)
 - [ ] Extending voice commands and *Actions* (make a better active assistant)
 - [ ] expanding *Memory*  

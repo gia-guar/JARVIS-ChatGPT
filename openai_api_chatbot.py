@@ -56,11 +56,7 @@ if __name__=="__main__":
             question, detected_language = myaudio.whisper_wav_to_text('output.wav', whisper_model, prior=jarvis.languages.keys())
 
             # check exit command
-<<<<<<< HEAD
             if "THANKS" in question.upper() or len(question.split())<=1:
-=======
-            if "THANKS" in question.upper():
->>>>>>> 3b54c2f58078e43bd0809a6abdee3dc559ec0a7d
                 jarvis.go_to_sleep()
                 continue
             
