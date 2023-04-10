@@ -1,11 +1,11 @@
 import whisper
 import pyaudio
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 2
-RATE = 44100
-SILENCE_THRESHOLD = 1500
+# CHUNK = 1024
+# FORMAT = pyaudio.paInt16
+# CHANNELS = 2
+# RATE = 44100
+# SILENCE_THRESHOLD = 1500
 
 # convert audio content into text
 def whisper_wav_to_text(audio_name, model=[], model_name=False, prior = None):
@@ -45,3 +45,29 @@ def whisper_wav_to_text(audio_name, model=[], model_name=False, prior = None):
     # print the recognized text
     print('\n[User]: '+ result.text)
     return result.text, detected_lang
+
+def get_device_channels():
+    p = pyaudio.PyAudio()
+    DEVICES = {}
+    for i in range(p.get_device_count()):
+        dev = p.get_device_info_by_index(i)
+        DEVICES[i] = dev['maxInputChannels']
+    return DEVICES
+
+def detect_microphones():
+    p = pyaudio.PyAudio()
+    MICS = []
+    for i in range(p.get_device_count()):
+        dev = p.get_device_info_by_index(i)
+        if 'microphone' in dev['name'].lower():
+            MICS.append(i)
+    
+    return MICS if len(MICS)>=1 else [0]
+
+def get_devices():
+    p = pyaudio.PyAudio()
+    DEV = []
+    for i in range(p.get_device_count()):
+        DEV.append( p.get_device_info_by_index(i))
+    return DEV
+        

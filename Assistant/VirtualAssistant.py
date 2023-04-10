@@ -28,14 +28,16 @@ class VirtualAssistant:
     RESPONSE_TIME = 3 #seconds
     SLEEP_DELAY = 30 #seconds
 
+    DEVICE_INDEX = myaudio.detect_microphones()[0]
     CHUNK = 1024
     FORMAT = pyaudio.paInt16
-    CHANNELS = 2
+    CHANNELS = myaudio.get_device_channels()[DEVICE_INDEX]
     RATE = 44100
     SILENCE_THRESHOLD = 1500
 
-    CONVERSATION_LONG_ENOUGH = 4 #interactions (2 questions)
+    print('using input device: ', myaudio.get_devices()[DEVICE_INDEX]['name'])
 
+    CONVERSATION_LONG_ENOUGH = 4 #interactions (2 questions)
 
     def __init__(self, 
                  whisper_model, 
@@ -91,7 +93,7 @@ class VirtualAssistant:
         self.current_conversation = self.DEFAULT_CHAT
 
         # AUDIO 
-        if 'awake_with_keyowords' in kwargs:
+        if 'awake_with_keywords' in kwargs:
             self.Keywords = kwargs['awake_with_keywords']
         else:
             self.Keywords = awake_with_keywords
@@ -203,36 +205,42 @@ class VirtualAssistant:
 
     # ACTIONS ##################################################################################
 
-    def confirm_choice(self, confirm_question, lang_id=None):
+    def confirm_choice(self, confirm_question, lang_id=None, debug=False):
         prompt = self.current_conversation[-1]["content"]
         if lang_id is None: lang_id = langid.classify(prompt)[0]
-        confirm_question = self.translator.translate(confirm_question, lang_id)       
+        confirm_question = self.translator.translate(confirm_question,lang_id)       
 
         self.say(confirm_question, VoiceIdx=lang_id)
         self.record_to_file('output.wav')
         response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
         
-        if self.search_engine.compute_similarity(key='yes',text=response)>0.8:
+        sentiment = self.search_engine.compute_similarity(key='yes',text=response)
+
+        if sentiment>0.8:
             self.expand_conversation(role="assistant", content=confirm_question)
             self.expand_conversation(role="user", content=response)
+            if debug: print(sentiment)
             return True
         else:
+            if debug: print(sentiment)
             return False
 
 
-    def find_file(self):
+    def find_file(self, debug = False):
         prompt = self.current_conversation[-1]["content"]
         lang_id = langid.classify(prompt)[0]
 
+        if debug: print(prompt, lang_id)
+
         # confirm choice first:
         confirm_question = "I am about to begin a search, should I proceed?"
-        if not(self.confirm_choice(confirm_question, lang_id = lang_id)):
+        if not(self.confirm_choice(confirm_question, lang_id=lang_id)):
             self.play('aborting.mp3')
             return -1
         
         # provide keywords:
         provide_tag_question = "Provide the argument of the search"
-        provide_tag_question = self.translator.translate(provide_tag_question, lang_id)
+        provide_tag_question = self.translator.translate(provide_tag_question, from_language='en', to_language=lang_id)
         self.say(provide_tag_question, VoiceIdx=lang_id)
         self.record_to_file('output.wav')
         response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
@@ -371,7 +379,7 @@ class VirtualAssistant:
             self.is_awake = True
         
     def record_to_file(self, file_path):
-        wf = wave.open(file_path, 'wb')
+        wf = wave.open(file_path, 'wb', )
         wf.setnchannels(self.CHANNELS)
         sample_width, frames = self.record()
         wf.setsampwidth(sample_width)
@@ -386,7 +394,8 @@ class VirtualAssistant:
                         channels=self.CHANNELS,
                         rate=self.RATE,
                         input=True,
-                        frames_per_buffer=self.CHUNK)
+                        frames_per_buffer=self.CHUNK,
+                        input_device_index=self.DEVICE_INDEX)
         
         frames = []
         try:
