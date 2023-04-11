@@ -3,13 +3,17 @@ import os
 import whisper
 import pygame
 
+#if these are below they are useless, the import on VirtualAssistant needs them
+os.environ['OPENAI_API_KEY']  = 'your-openai-api-key'
+os.environ['IBM_API_KEY']     = 'your-ibm-cloud-api-key'
+os.environ['IBM_TTS_SERVICE'] = 'your-ibm-cloud-tts-url'
+#added procupine key variable
+os.environ['PORCUPINE_KEY'] = 'your-free-porcupine-key'
+
 from Assistant import get_audio as myaudio
 from Assistant.VirtualAssistant import VirtualAssistant
 from Assistant.tools import count_tokens
 
-os.environ['OPENAI_API_KEY']  = 'your-openai-api-key'
-os.environ['IBM_API_KEY']     = 'your-ibm-cloud-api-key'
-os.environ['IBM_TTS_SERVICE'] = 'your-ibm-cloud-tts-url'
 
 print('DONE\n')
 
@@ -46,8 +50,8 @@ if __name__=="__main__":
         if not(jarvis.is_awake):
             print('\n awaiting for triggering words...')
 
-            while not(jarvis.is_awake):
-                jarvis.listen_passively()
+            #block until the wakeword is heard, using porcupine
+            jarvis.block_until_wakeword()
         
         jarvis.record_to_file('output.wav')
         
