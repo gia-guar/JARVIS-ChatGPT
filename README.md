@@ -26,7 +26,8 @@ new: ```pip install argostranslate pvporcupine python-dotenv```
 - Lately, the ```translator``` package was taking too long to work (~20 seconds to get a translation), so I added another translator package that works instantly and it's offline;
 - The 'Jarvis' wake-up keyword was added from the ```picovoice``` package. It requires a free key you can get at https://picovoice.ai/platform/porcupine;
 - Fundamental improvements to the local search engine in terms of speed and credit consumption. With this update, accessing information from past conversations gets easier. When the search is completed the AI will summarize the text;
-- Using dotenv for easier authenthication; 
+- Using dotenv for easier authentication; 
+- Made a reasonable requirement file;
 <br>
  
 ---
