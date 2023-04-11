@@ -125,10 +125,10 @@ When running, you'll see much information being displayed. I'm constantly strivi
 - [x] [3  - 2023] Improve output displayed info
 - [x] [3  - 2023] Improve JARVIS's voice performances through prompt preprocessing
 - [x] [4  - 2023] Introducing: *Project memory* store chats, events, timelines and other relevant information for a given project to be accessed later by the user or the assistant itself 
-- [x][4  - 2023] Create a full stack ```VirtualAssistant``` class with memory and local storage access
-- [x][4  - 2023] Add sound feedback at different stages (chimes, beeps...)
-- [x][4  - 2023] International language support for voice commands (beta)
-- [x][4  - 2023] Making a step-by-step tutorial 
+- [x] [4  - 2023] Create a full stack ```VirtualAssistant``` class with memory and local storage access
+- [x] [4  - 2023] Add sound feedback at different stages (chimes, beeps...)
+- [x] [4  - 2023] International language support for voice commands (beta)
+- [x] [11  - 2023] Making a step-by-step tutorial 
 
 currently working on:
 - [ ] Move some processing locally to reduce credit consumption: [Vicuna: A new, powerful model based on LLaMa, and trained with GPT-4](https://www.youtube.com/watch?v=ByV5w1ES38A&ab_channel=TroubleChute);
