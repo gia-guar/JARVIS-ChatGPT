@@ -360,6 +360,60 @@ class VirtualAssistant:
     
 
     # LISTEN #############################################################################################
+    
+    #function that blocks the code until the wakeword, or wakewords are encountered
+    def block_until_wakeword(self, verbosity=False):        
+        if verbosity: print("listening passively...", end="")
+        
+        from struct import unpack_from
+        import pvporcupine
+        
+        #initialize values
+        porcupine = None
+        pa = None
+        audio_stream = None
+
+        try:
+            porcupine = pvporcupine.create(access_key=os.environ["PORCUPINE_KEY"], 
+                                        keywords=self.Keywords)
+
+            pa = pyaudio.PyAudio()
+
+            audio_stream = pa.open(
+                rate=porcupine.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=porcupine.frame_length)
+
+            #not strictly necessary, but helps debug if something overwrote the keywords
+            print(f"Listening for wake word '{self.Keywords}'...")
+
+            #loop to preform while waiting(does not noticeably use the CPU)
+            while True:
+                pcm = audio_stream.read(porcupine.frame_length)
+                pcm = unpack_from("h" * porcupine.frame_length, pcm)
+
+                keyword_index = porcupine.process(pcm)
+
+                #same actions activated as previous function
+                #NOTE: keyword_index is -1 unless wakeword encountered, then it's the index of the wakeword in the list
+                #(different wakewords activate different profiles?)
+                if keyword_index >= 0:
+                    print("wakeword encountered")
+                    self.start_new_conversation()
+                    self.play('wake.mp3',PlayAndWait=False)
+                    self.is_awake = True
+                    return
+        finally:
+            #clean up
+            if audio_stream is not None:
+                audio_stream.close()
+            if pa is not None:
+                pa.terminate()
+            if porcupine is not None:
+                porcupine.delete()
+    
     def listen_passively(self, verbosity=False):
         with sr.Microphone() as source:
             if verbosity: print("listenting passively...", end="")
