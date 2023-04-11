@@ -9,6 +9,7 @@ os.environ['IBM_API_KEY']     = 'your-ibm-cloud-api-key'
 os.environ['IBM_TTS_SERVICE'] = 'your-ibm-cloud-tts-url'
 #added procupine key variable
 os.environ['PORCUPINE_KEY'] = 'your-free-porcupine-key'
+use_porcupine = True
 
 from Assistant import get_audio as myaudio
 from Assistant.VirtualAssistant import VirtualAssistant
@@ -51,7 +52,11 @@ if __name__=="__main__":
             print('\n awaiting for triggering words...')
 
             #block until the wakeword is heard, using porcupine
-            jarvis.block_until_wakeword()
+            if use_porcupine:
+                jarvis.block_until_wakeword()
+            else:
+                while not(jarvis.is_awake):
+                    jarvis.listen_passively()
         
         jarvis.record_to_file('output.wav')
         
