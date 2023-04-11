@@ -68,7 +68,7 @@ You can follow a [YT video](https://www.youtube.com/watch?v=AcCG7DOwhG8&t=1s) I 
 ### Checks
 - Verify your graphic engine and CUDA version are compatible with PyTorch by running `torch.cuda.is_available()` and `torch.cuda.get_device_name(0)` inside Pyhton; . 
 - run ```tests.py```. This file attempt to perform basic operations that might raise errors;
-- [WARNING] Chack FAQ below if you have errors;
+- [WARNING] Check FAQ below if you have errors;
 - You can check the sources of error by running demos in the demos folder;
 
 
