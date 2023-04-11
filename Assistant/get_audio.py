@@ -8,7 +8,7 @@ import pyaudio
 # SILENCE_THRESHOLD = 1500
 
 # convert audio content into text
-def whisper_wav_to_text(audio_name, model=[], model_name=False, prior = None):
+def whisper_wav_to_text(audio_name, model=[], model_name=False, prior=None):
     if isinstance(model_name, str):
         print('loading model ', model_name)
         model = whisper.load_model(model_name)

@@ -44,6 +44,7 @@ class VirtualAssistant:
                  awake_with_keywords = ['elephant'],
                  model = "gpt-3.5-turbo",
                  embed_model = "text-embedding-ada-002",
+                 translator_model = 'argostranslator',
                  **kwargs):
         try:
             openai.api_key = kwargs['openai_api']
@@ -75,28 +76,26 @@ class VirtualAssistant:
         else:
             kwargs['voice_id'] = os.path.join(self.DIRECTORIES["VOICE_DIR"], 'default.wav')
 
+        self.languages = {
+            'en': "English",
+            'it': "Italian",
+            # add yours
+        }
+
         self.voice = Voice(**kwargs)
-        self.translator = Translator(model=model)
+        self.translator = Translator(model=translator_model, translator_languages = list(self.languages.keys()))
         self.answer_engine = model
         self.search_engine = LocalSearchEngine(
             embed_model = embed_model, 
             tldr_model = model,
-            translator_model='translators')
+            translator_model=translator_model,
+            translator_languages = list(self.languages.keys()))
         
-        self.languages = {
-            'en': "English",
-            'it': "Italian",
-            # add your
-        }
-
         self.is_awake = False
         self.current_conversation = self.DEFAULT_CHAT
 
         # AUDIO 
-        if 'awake_with_keywords' in kwargs:
-            self.Keywords = kwargs['awake_with_keywords']
-        else:
-            self.Keywords = awake_with_keywords
+        self.Keywords = awake_with_keywords
 
         self.ears = sr.Recognizer()
         self.interpreter = whisper_model
@@ -137,6 +136,7 @@ class VirtualAssistant:
         for i, function in enumerate(self.functions):
             context += f"\n{i+1} - {function};"
         context += "\nYou can answer only with numbers. A number must always be present in your answer."
+        context += "\nHere is an example: PROMPT: 'find a conversation'\n 1\nPROMPT:'do you agree?'\n2\nPROMPT: 'Salva questa conversazione'\n5"
 
         CHAT = [{"role": "system", "content": context},
                 {"role": "user", "content":f"PROMPT: '{self.current_conversation[-1]['content']}'"}]
@@ -186,7 +186,7 @@ class VirtualAssistant:
     def save_chat(self):
         if not os.path.isdir(self.DIRECTORIES['CHAT_DIR']): os.mkdir(self.DIRECTORIES['CHAT_DIR'])
         
-        title = self.get_answer(question="generate a title for this conversation", update=False)
+        title = self.get_answer(question="generate a very short title for this conversation", update=False)
         self.say(f'I am saving this conversation with title: {title}', VoiceIdx='en')
 
         self.play('data_writing.mp3', PlayAndWait=True)
@@ -200,31 +200,29 @@ class VirtualAssistant:
                 f.write(message["role"]+ ': ' + message["content"]+'\n')
             f.close()
 
-
-
+    def load_conversation(self, filepath):
+        # to be implemented
+        return #conversation in json format 
 
     # ACTIONS ##################################################################################
+    
 
-    def confirm_choice(self, confirm_question, lang_id=None, debug=False):
+    def confirm_choice(self, confirm_question, lang_id=None):
         prompt = self.current_conversation[-1]["content"]
         if lang_id is None: lang_id = langid.classify(prompt)[0]
-        confirm_question = self.translator.translate(confirm_question,lang_id)       
+
+        confirm_question = self.translator.translate(confirm_question, from_language = 'en', to_language = lang_id)       
 
         self.say(confirm_question, VoiceIdx=lang_id)
         self.record_to_file('output.wav')
-        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
+        response, lang_id = myaudio.whisper_wav_to_text('output.wav',self.interpreter, prior=self.languages)
         
-        sentiment = self.search_engine.compute_similarity(key='yes',text=response)
-
-        if sentiment>0.8:
-            self.expand_conversation(role="assistant", content=confirm_question)
-            self.expand_conversation(role="user", content=response)
-            if debug: print(sentiment)
+        if any(word in self.translator.translate(response, from_language=lang_id, to_language='en').lower() for word in ['yes','yeah','go ahead','continue','proceed']):
             return True
-        else:
-            if debug: print(sentiment)
-            return False
 
+        print(self.translator.translate(response, from_language=lang_id, to_language='en').lower().split())
+        return False
+        
 
     def find_file(self, debug = False):
         prompt = self.current_conversation[-1]["content"]
@@ -243,7 +241,7 @@ class VirtualAssistant:
         provide_tag_question = self.translator.translate(provide_tag_question, from_language='en', to_language=lang_id)
         self.say(provide_tag_question, VoiceIdx=lang_id)
         self.record_to_file('output.wav')
-        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter)
+        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter, prior=self.languages)
         self.expand_conversation(role="assistant", content=provide_tag_question)
         self.expand_conversation(role="user", content=response)
 
@@ -258,26 +256,19 @@ class VirtualAssistant:
         summary = self.search_engine.accurate_search(key=keywords, from_csv=True)
         self.play('wake.mp3')
 
-        lang_id = langid.classify(prompt)[0]
-        text = self.translator.translate("Research completed:", lang_id)
-        
-        all_files = pd.read_csv(os.path.join(self.search_engine.default_dir,'DATAFRAME.csv'))
+        text  = self.translator.translate("Research completed:", lang_id)
+        text += '\n'+f'In the most relevant conversation the following topic were discussed:'
+        text  = self.translator.translate(text, from_language = 'en', to_language = lang_id)
+        text += f'{self.translator.translate(summary.tags[0], to_language=lang_id)}'
 
+        text += f"\n{self.translator.translate(input='here is a short summary of the conversation', to_language=lang_id)}: "
 
-        for i in range(len(summary.file_names)):
-            try:
-                idx = all_files.file_names.index(summary.file_names[i])
-                topics = all_files.tags[idx]
-            except:
-                topics = f'error - {summary.file_names[i]} not found in {all_files.file_names}'
-
-            text += f"\n - {i+1}): {topics.split()[:3]};"
-
-        self.say(self.translator.translate(f'In the most relevant conversation the following topic were discussed: {summary.tags[0]}', lang_id),
-            VoiceIdx=lang_id)
-
+        file = open(os.path.join(self.DIRECTORIES['CHAT_DIR'],summary.file_names[0]), 'r')
+        conversation = file.read()
+        text += '\n'+self.search_engine.tldr(text=conversation, to_language=self.languages[lang_id])
+        self.say(text,VoiceIdx=lang_id)
         print("\n")
-
+        
         self.expand_conversation(role="assistant", content=text)
 
         # work in progress: asking to actually load the conversation 
@@ -285,8 +276,6 @@ class VirtualAssistant:
         return summary
 
 
-
-        
 
 
     # SPEAK ####################################################################################
@@ -360,14 +349,15 @@ class VirtualAssistant:
     
 
     # LISTEN #############################################################################################
+
     
     #function that blocks the code until the wakeword, or wakewords are encountered
     def block_until_wakeword(self, verbosity=False):        
         if verbosity: print("listening passively...", end="")
-        
+
         from struct import unpack_from
         import pvporcupine
-        
+
         #initialize values
         porcupine = None
         pa = None
@@ -387,7 +377,7 @@ class VirtualAssistant:
                 frames_per_buffer=porcupine.frame_length)
 
             #not strictly necessary, but helps debug if something overwrote the keywords
-            print(f"Listening for wake word '{self.Keywords}'...")
+            print(f"Listening for wake word '{self.Keywords[0]}'...")
 
             #loop to preform while waiting(does not noticeably use the CPU)
             while True:
@@ -413,7 +403,7 @@ class VirtualAssistant:
                 pa.terminate()
             if porcupine is not None:
                 porcupine.delete()
-    
+     
     def listen_passively(self, verbosity=False):
         with sr.Microphone() as source:
             if verbosity: print("listenting passively...", end="")

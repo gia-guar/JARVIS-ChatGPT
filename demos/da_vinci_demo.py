@@ -1,5 +1,8 @@
 import openai
 
+## SET YOUR API KEY:
+openai.apikey('')
+
 def generate_single_response(prompt, model_engine="text-davinci-003", temp=0.5):
     openai.api_key = 'your openai api key'  
     prompt = (f"{prompt}")
@@ -35,7 +38,6 @@ def get_answer(message):
 
 
 if __name__ == "__main__":
-    openai.api_key = "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"
     
     while True:
         message = input("[user]: ")

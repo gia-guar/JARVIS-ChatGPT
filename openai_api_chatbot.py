@@ -1,15 +1,28 @@
-print('### IMPORTING DEPENDANCIES ###')
+print('### LOADING CREDENTIALS ###')
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
+
+if len(os.environ['OPENAI_API_KEY'])==0: 
+    print('openai API key not detected in .env')
+    raise Exception("[$] openai API key is required. Learn more at https://platform.openai.com/account/api-keys")
+
+if len(os.environ['IBM_API_KEY'])==0: print('[free] IBM cloud API Key not detected in .env\nLearn more at: https://cloud.ibm.com/catalog/services/text-to-speech')
+
+if len(os.environ['IBM_TTS_SERVICE'])==0: print('[free] IBM cloud TTS service not detected in .env\nLearn more at: https://cloud.ibm.com/catalog/services/text-to-speech')
+
+use_porcupine = True
+if len(os.environ['PORCUPINE_KEY']) == 0: 
+    print('[free] PicoVoice not detected in .env\nLearn more at: https://picovoice.ai/platform/porcupine/')
+    use_porcupine = False
+
+
+print('DONE\n')
+
+print('### IMPORTING DEPENDANCIES ###')
 import whisper
 import pygame
-
-#if these are below they are useless, the import on VirtualAssistant needs them
-os.environ['OPENAI_API_KEY']  = 'your-openai-api-key'
-os.environ['IBM_API_KEY']     = 'your-ibm-cloud-api-key'
-os.environ['IBM_TTS_SERVICE'] = 'your-ibm-cloud-tts-url'
-#added procupine key variable
-os.environ['PORCUPINE_KEY'] = 'your-free-porcupine-key'
-use_porcupine = True
 
 from Assistant import get_audio as myaudio
 from Assistant.VirtualAssistant import VirtualAssistant
@@ -39,7 +52,7 @@ if __name__=="__main__":
         ibm_url    = os.getenv('IBM_TTS_SERVICE'),
         voice_id   = 'friday_en',
         whisper_model= whisper_model,
-        awake_with_keywords=["elephant"],
+        awake_with_keywords=["jarvis"],
         model= "gpt-3.5-turbo",
         embed_model= "text-embedding-ada-002",
         RESPONSE_TIME = 3,
@@ -47,7 +60,6 @@ if __name__=="__main__":
         )
 
     while True:
-
         if not(jarvis.is_awake):
             print('\n awaiting for triggering words...')
 
@@ -78,10 +90,12 @@ if __name__=="__main__":
             jarvis.expand_conversation(role="user", content=question)
             flag = jarvis.analyze_prompt()
 
+            try:
+                print('(thought): ', flag)
+            except: pass
             if "1" in flag or "find a file" in flag:
                 summary = jarvis.find_file()
                 print(summary)
-                print(jarvis.current_conversation)
                 continue
             
             # count tokens to satisfy the max limits
