@@ -15,7 +15,7 @@ Ever dreamed to ask hyper-intelligent system tips to improve your armor? Now you
 
 <p align="center"> <strong> DEMO: </strong> </p> 
 
-[![Watch the video](https://user-images.githubusercontent.com/49094051/231294086-840eb207-8bbe-4d00-8403-c8d9985aed67.PNG)]('https://user-images.githubusercontent.com/49094051/231292139-28ab2b5e-45fd-493c-a93b-858f69d73b48.mp4')
+https://user-images.githubusercontent.com/49094051/231303323-9859e028-33e1-490d-9967-44852fd0efc5.mp4
 
 <br>
 
