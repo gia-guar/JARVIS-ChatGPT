@@ -62,7 +62,7 @@ You can follow a [YT video](https://www.youtube.com/watch?v=AcCG7DOwhG8&t=1s) I 
 6. Run [their script](https://github.com/coqui-ai/TTS/blob/dev/README.md#-python-api) and check everything is working (it should download some models) (you can alternatively run ```demos/tts_demo.py```);
 7. Rename or delete the TTS folder and download the Assistant and other scripts from this repo 
 8. Check everything works *(following)*
-9. paste all your keys in the ```.env``` file
+9. paste all your keys in the ```env.txt``` file and rename it to ```.env``` (yes, remove the txt extension)
 <br>
 
 ### Checks
