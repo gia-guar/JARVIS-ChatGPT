@@ -237,3 +237,4 @@ widgetsnbextension==3.6.1
 wrapt==1.14.1
 yarl==1.8.2
 zipp==3.8.0
+pvporcupine==2.1.4

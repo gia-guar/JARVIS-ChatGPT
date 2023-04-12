@@ -22,18 +22,23 @@ import audioop
 import time
 import sys
 from contextlib import contextmanager 
+#module used for speaking during recording
+import webrtcvad
       
 class VirtualAssistant:
     DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
-    RESPONSE_TIME = 3 #seconds
-    SLEEP_DELAY = 30 #seconds
+    RESPONSE_TIME = .5 #values that work well in my environment (ticks, not seconds)
+    SLEEP_DELAY = 1.5
+    
+    MAX_RECORDING_TIME = 60 #seconds
+    VAD_AGGRESSIVENESS = 3 #1-3
+    
 
     DEVICE_INDEX = myaudio.detect_microphones()[0]
     CHUNK = 1024
     FORMAT = pyaudio.paInt16
     CHANNELS = myaudio.get_device_channels()[DEVICE_INDEX]
     RATE = 44100
-    SILENCE_THRESHOLD = 1500
 
     print('using input device: ', myaudio.get_devices()[DEVICE_INDEX]['name'])
 
@@ -93,6 +98,10 @@ class VirtualAssistant:
         self.current_conversation = self.DEFAULT_CHAT
 
         # AUDIO 
+        #initialize the VAD module
+        self.vad = webrtcvad.Vad()
+        self.vad.set_mode(self.VAD_AGGRESSIVENESS) 
+        
         if 'awake_with_keywords' in kwargs:
             self.Keywords = kwargs['awake_with_keywords']
         else:
@@ -442,54 +451,77 @@ class VirtualAssistant:
         wf.close()
     
     def record(self):
-        ## init Microphone streamline
+        # Your current setup
+        vad_rate = 32000
+        frame_length_ms = 20
+        vad_CHUNK = (vad_rate * frame_length_ms) // 1000
+
         p = pyaudio.PyAudio()
-        stream = p.open(format=self.FORMAT,
+        vad_stream = p.open(format=self.FORMAT,
+                        channels=self.CHANNELS,
+                        rate=vad_rate,
+                        input=True,
+                        frames_per_buffer=vad_CHUNK)
+        
+        rec_stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
                         rate=self.RATE,
                         input=True,
-                        frames_per_buffer=self.CHUNK,
-                        input_device_index=self.DEVICE_INDEX)
-        
+                        frames_per_buffer=self.CHUNK)
+
         frames = []
         try:
             silence_time = 0
             speaked = False
             print("listening...")
+            
+            start_time = time.perf_counter()
+            last_voice_activity_time = 0
 
             while True:
-                delta = time.perf_counter()
-                data = stream.read(self.CHUNK)
-                frames.append(data)
-                    
-                # detect silence
-                data = stream.read(self.CHUNK)
-                sound_amplitude = audioop.rms(data, 2)
-                delta = time.perf_counter() - delta
+                rec_data = rec_stream.read(self.CHUNK)
+                frames.append(rec_data)
 
-                if(sound_amplitude < self.SILENCE_THRESHOLD):      
-                    silence_time = silence_time + delta
+                # detect voice activity
+                data = vad_stream.read(vad_CHUNK)
+                try:
+                    is_voice = self.vad.is_speech(data, vad_rate)
+                except Exception as e:
+                    print(f"Error during VAD: {e}")
 
-                    # break the loop and return the audio
-                    if (silence_time > self.RESPONSE_TIME) and speaked:
-                        raise KeyboardInterrupt   
-                    
-                    if silence_time > self.SLEEP_DELAY:
-                        self.go_to_sleep()
-                        raise KeyboardInterrupt 
-                else:
+                # Calculate time since the last voice activity
+                if is_voice:
                     speaked = True
                     silence_time = 0
+                    last_voice_activity_time = time.perf_counter()
+                else:
+                    silence_time += frame_length_ms / 1000
+
+                # Print debugging information (useful for tuning sensitivity)
+                #print(f"is_voice: {is_voice}, silence_time: {silence_time}, speaked: {speaked}")
+
+                # Stop recording if silence duration exceeds the threshold or if the time limit is reached
+                if (silence_time > self.RESPONSE_TIME and speaked) or (time.perf_counter() - start_time > self.MAX_RECORDING_TIME):
+                    break
+
+                if silence_time > self.SLEEP_DELAY:
+                    self.go_to_sleep()
+                    break
+                
+                time.sleep(frame_length_ms / 10000)
 
         except KeyboardInterrupt:
             print("Done recording")
         except Exception as e:
             print(str(e))
             print(silence_time,self.RESPONSE_TIME,self.SLEEP_DELAY)
+            exit()
 
         sample_width = p.get_sample_size(self.FORMAT)
-        stream.stop_stream()
-        stream.close()
+        vad_stream.stop_stream()
+        vad_stream.close()
+        rec_stream.stop_stream()
+        rec_stream.close()
         p.terminate()
         return sample_width, frames
     
