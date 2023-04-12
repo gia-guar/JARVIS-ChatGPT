@@ -238,3 +238,25 @@ wrapt==1.14.1
 yarl==1.8.2
 zipp==3.8.0
 pvporcupine==2.1.4
+whisper-openai == 1.0.0
+textblob ==  0.17.1
+langid == 1.1.6
+SpeechRecognition ==3.10.0
+pandas
+pyaudio == 0.2.13
+pygame == 2.3.0
+pyttsx3 
+translators
+openai
+ibm-cloud-sdk-core
+ibm-watson
+librosa
+fsspec
+coqpit
+trainer
+pysbd
+matplotlib>=3.7.1
+scipy >= 1.10.1
+scikit-learn >= 1.2.2
+plotly 
+python-dotenv

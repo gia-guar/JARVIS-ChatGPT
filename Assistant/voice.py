@@ -23,7 +23,7 @@ class Voice:
             print('  3/3: Setting up cloud service ...')
             tts.set_service_url(url)
             print('    ✓ service established\n')
-
+            self.tts_service = [tts]
         except:
             print('IBM authentication failed')
 
@@ -31,14 +31,9 @@ class Voice:
         engine = pyttsx3.init()
 
         # SYNTHETIC VOICES
-
-        # # CorentinJ     - Real Time Voice Cloning github (https://github.com/CorentinJ/Real-Time-Voice-Cloning)
-        #[deprecated] synth = JARVIS.init_jarvis()   
-
-        # CoquiAI         - coqui-ai/TTS (https://github.com/coqui-ai/tts)
+        # CoquiAI -  coqui-ai/TTS (https://github.com/coqui-ai/tts)
         synth = TTS(model_name=os.path.join("tts_models/multilingual/multi-dataset/your_tts"), progress_bar=False, gpu=True)  
 
-        self.tts_service = [tts]
         self.path = kwargs['voice_id']
         self.synthetic_voice = synth
         self.offline = engine

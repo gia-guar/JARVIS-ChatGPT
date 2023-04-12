@@ -1,4 +1,15 @@
 # Update History
+
+---
+## APRIL 11th 2023 UPDATE: Overall improvement to search engine, update README.md
+new: ```pip install argostranslate pvporcupine python-dotenv```
+- Upgrading to Python 3.8 and CUDA 11.7 (!)
+- Lately, the ```translator``` package was taking too long to work (~20 seconds to get a translation), so I added another translator package that works instantly and it's offline;
+- The 'Jarvis' wake-up keyword was added from the ```picovoice``` package. It requires a free key you can get at https://picovoice.ai/platform/porcupine;
+- Fundamental improvements to the local search engine in terms of speed and credit consumption. With this update, accessing information from past conversations gets easier. When the search is completed the AI will summarize the text;
+- Using dotenv for easier authenthication; 
+<br>
+---
 ---
 ## APRIL 5th 2023 UPDATE: New Voice Models (F.R.I.D.A.Y), Expanding Local Search Engine and More
 I finally decided to upgrade the voice model from @ConrentinJ to [@CoquiAI](https://github.com/coqui-ai/tts). This model works on the same principle (Transfer Learning from Speaker Verification to Multispeaker Text-To-Speech Synthesis) but is much faster, more versatile and offers more options to explore. Right now, I just want to push this version live, it works by default with one of the models offered by the TTS package. In the future, I'll explore the differences and strengths of all the other models (you can do it by changing the name of the model when the Voice is initialized inside ``Voice.py``, as shown in the ``tts_demo.py``). Moreover, this model is multilanguage so if you find any clean interviews of voice actors you can use them as models when the answer needs to be spoken in your (or any) language.
@@ -19,6 +30,7 @@ Minor updates:
  - Improved Speech-to-text by reducing the possible languages to the ones specified in the Assistant model;
 <br>
 
+---
 ---
 ## April 1st 2023 UPDATE: Introducing the Local Search Engine, sounds and more
 I managed to build some tools that are capable of reading and abstracting information from textual files (.txt). This tool might be precious in futire when voice commands that handle the Assistant memory will be introduced. The idea is to have specific commands like "open the last conversation about topic X" or "I remember something you said about topic Y can you make a summary of that conversation?". The LocalSearchEngine can find sort the discussions by relevancy (``cosine_similarity``) making use of embeddings: *an embedding is a vector (list) of floating point numbers. The distance between two vectors measures their relatedness. Small distances suggest high relatedness and large distances suggest low relatedness. [OpenAI - what are embeddings](https://platform.openai.com/docs/guides/embeddings/what-are-embeddings). You can find these inside ``Assistant\tools.py``*
@@ -46,7 +58,7 @@ other minor updates:
 - Made overall code slightly more efficient; 
 <br>
 <br>
-
+---
 ---
 ## March 26 2026 UPDATE: Background execution and Hands Free control
 This update is focused on making the assistant more viable in everyday life. 
@@ -65,6 +77,7 @@ This update is focused on making the assistant more viable in everyday life.
 <br>
 <br>
 
+---
 ---
 ## March 13 2023 UPDATE: JARVIS VOICE IS HERE!
 **How i did it**: I spent a huge amount of time on @CorentinJ github https://github.com/CorentinJ/Real-Time-Voice-Cloning which provides an interface to generate audio from text using a pretrained text-to-speech model. The GUI is pretty clever and I admire his work, however, using the model in a python script is not straight foward! I first edited the toolbox to save **embeddings**, which are the beginning of  the generation process,. They are the "voice ID" of the targeted people, expressed in terms of matrix. With this edit, I used the toolbox to generate Paul Bettany's voice embedding. <br>

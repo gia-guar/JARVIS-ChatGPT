@@ -3,11 +3,17 @@ import os
 import pandas as pd
 import numpy as np
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
+from tqdm import tqdm
+
 import regex as re
 import langid
 from textblob import TextBlob
-from tqdm import tqdm
 import translators as ts
+import argostranslate.package
+import argostranslate.translate
+
+import math
+import time 
 
 """
 Translator: 
@@ -17,17 +23,43 @@ Setting temperature to 0 allows better raw results
 
 """
 options:
- - gpt-3.5-turbo
- - translators 5.6.3 lib
+ - gpt-3.5-turbo: reasonably fast, online, requires openai credit usage 
+ - translators 5.6.3 lib: online, excellent, long lags might occcur
+ - [default] argostranslator: fast,  offline 
 """
 class Translator:
-    def __init__(self, model="translators", ):
+    def __init__(self, model="argostranslator", **kwargs):
+        POSSIBLE_MODELS = ['argostranslator','gpt-3.5-turbo', 'translators']
+        if model not in POSSIBLE_MODELS:
+            raise Exception('this Translation model is not available')
+        
         self.DEFAULT_CHAT = [{"role": "system", 
                     "content": "You are a translator. You recieve text and target language as inputs and translate the text to the target language"}]
         self.body = None
         self.model = model
 
-    def translate(self, input, to_language):
+        # Download and install Argos Translate packages
+        argostranslate.package.update_package_index()
+        available_packages = argostranslate.package.get_available_packages()
+        langs = kwargs['translator_languages']
+        for i in range(len(langs)):
+            for j in range(len(langs)):
+                if langs[i]==langs[j]: continue
+                print(f'downloading/verifying Argos Translate Language package from {langs[i]} to {langs[j]}...')
+                package_to_install = next(
+                    filter(
+                        lambda x: x.from_code == langs[i] and x.to_code == langs[j], available_packages
+                    )
+                )
+                argostranslate.package.install_from_path(package_to_install.download())
+        
+
+    def translate(self, input, to_language, from_language=None):
+        if from_language == to_language: return input
+
+        if from_language == None:
+            from_language = langid.classify(input)[0]
+            
         if self.model=="gpt-3.5-turbo":
             self.body = self.DEFAULT_CHAT
             self.body.append({"role":"user", "content":f"translate in {to_language}:'{input}'"})
@@ -36,6 +68,7 @@ class Translator:
                         model=self.model,
                         temperature=0,  
                         messages=self.body)
+                
             except Exception as e:
                 print(f"couldn't translate {self.body[-1]}")
                 print(e)
@@ -43,12 +76,14 @@ class Translator:
             return API_response['choices'][0]['message']['content']
         
         if self.model=='translators':
-            res = ts.translate_text(input, translator='google',to_language='en')
+            res = ts.translate_text(input, translator='google', to_language=to_language, from_language=from_language)
+            return res
+        
+        if self.model == 'argostranslator':
+            res = argostranslate.translate.translate(input, from_code=from_language, to_code=to_language)
             return res
 
     
-
-
 
 """
 LocalSearchEngine:
@@ -66,11 +101,12 @@ class LocalSearchEngine:
     def __init__(self, 
                  embed_model = "text-embedding-ada-002", 
                  tldr_model = "gpt-3.5-turbo",
-                 translator_model = "translators",
+                 translator_model = "argostranslators",
+                 translator_languages = ['en','it','es'],
                  default_dir = os.path.realpath(os.path.join(os.getcwd(),'saved_chats')),
                  irrelevancy_th=0.8):
         
-        self.translate_engine = Translator(model=translator_model)
+        self.translate_engine = Translator(model=translator_model, translator_languages=translator_languages)
         self.tldr_model  = tldr_model
         self.embed_model = embed_model
         self.default_dir = default_dir
@@ -97,10 +133,10 @@ class LocalSearchEngine:
             tags = DataFrame['tags']
 
             if len(fnames)!=len(os.listdir(path)):
-                print('dataset not updated. Updating it now...')
+                print('> dataset not updated. Updating it now...')
                 self.produce_folder_tags()
         
-        print('Analyzing DataFrame:')
+        print('> Analyzing DataFrame:')
 
         results = []
         topics = []
@@ -124,6 +160,7 @@ class LocalSearchEngine:
         df = pd.DataFrame({'file_names':fnames, 'similarity':results,"tags":topics})
         df = df.sort_values(by='similarity', ascending=False)
         df = df.reset_index(drop=True)
+
         return df.head(n)
 
     
@@ -165,105 +202,81 @@ class LocalSearchEngine:
         return df
     
 
-    def produce_folder_tags(self, path=None, update=False):
+    def produce_folder_tags(self, path=None):
         if path is None:
             path = self.default_dir
         
-        if ('DATAFRAME.csv' in os.listdir(path)) and update==False:
-            print('DataFrame already existing')
-            return
-        
+        if ('DATAFRAME.csv' in os.listdir(path)):
+            print('> > DataFrame existing')
+        else:
+            print('> > Creating empty DataFrame')
+            pd.DataFrame(columns=['file_names', 'tags', 'embeddings']).to_csv(os.path.join(path,'DATAFRAME.csv'))
+
+        existing_df = pd.read_csv(os.path.join(path, 'DATAFRAME.csv'))
+
         fnames = os.listdir(path)
         embeds = []
         topics = []
+        n_updates = 0
 
         for filename in fnames:
+            # process text files only
             if not(filename.endswith('.txt')):
-                embeds.append(None)
-                topics.append(None)
+                embeds.append(math.nan)
+                topics.append('NaN')
                 continue
 
+            # don't repeat calculation if the file has already been processed 
+            has_tags = len(existing_df['tags'][existing_df["file_names"]==filename])>=1
+            
+            try:
+                has_embeds = len(existing_df['embeddings'][existing_df["file_names"]==filename].to_list()[0]) >5 
+            except:
+                has_embeds = False
+        
             f = open(os.path.join(path,filename), 'r')
             text = f.read()
             if count_tokens(text)>4096:
                 # keep 2000 words only
                 text = " ".join(text.split()[0:2000])
 
-            tags = self.extract_tags(text)
-            topics.append(tags)
-            embeds.append(openai.Embedding.create(input=tags, engine=self.embed_model)['data'][0]['embedding'])
-        
+            if has_tags:
+                tags= existing_df['tags'][existing_df["file_names"]==filename].to_list()[0]
+                topics.append(tags)
+            else:
+                n_updates +=1
+                print(f'> > {filename}: extracting topics')
+                done= False
+                while not(done):
+                    try:    
+                        tags = self.extract_tags(text)
+                        done= True
+                    except:
+                        print('> > system overloaded, waiting 5 sec')
+                        time.sleep(5)
+
+                topics.append(tags)
+
+            if has_embeds:
+                embeds.append(existing_df['embeddings'][existing_df["file_names"]==filename].to_list()[0])
+            else:
+                n_updates +=1
+                print(f'> > {filename}: processing embeddings')
+                done = False
+                while not(done):
+                    try:            
+                        embedding = self.compute_embeds(tags)
+                        done= True
+                    except:
+                        print('> > system overloaded, waiting 5 sec')
+                        time.sleep(5)
+                embeds.append(embedding)
+
         df = pd.DataFrame({'file_names':fnames, 'tags':topics, 'embeddings':embeds})
         df.to_csv(os.path.join(path,'DATAFRAME.csv'), index=False)
         df = df.reset_index(drop=True)
-        print(df.head())
+        print(f"> > # UPDATES applied:{n_updates}")
         return df
-    
-
-    def extract_query(self, prompt):
-        """
-        Strategy: version 1: 
-         1 - create a prompt embedding (encode meaning)
-         2 - for every word, compare it's embedding to the prompt embedding, keep only the ones that are not noise
-         3 - identify the words that are meaningful to the prompt
-
-         Strategy: ideal: use a Multi Head Self Attention mechanisms
-         This is not accessible through OpenAI API so it'll need a model trained from scratch.
-         Then Multi head self attention can be used to provide weights to each word.
-        """
-
-        prompt_embed = np.array(openai.Embedding.create(input=prompt, engine='text-embedding-ada-002')['data'][0]['embedding'])
-        negative_embedding = np.array(openai.Embedding.create(input='conversation, discussion', engine='text-embedding-ada-002')['data'][0]['embedding'])
-
-        # init 
-        results = []
-        words = []
-        embeds = []
-        df = pd.DataFrame()
-
-        # replacing all non alpha-numeric stuff with spaces
-        # this is to avoid "word" and "word." to be considered different
-        prompt = re.sub('[^0-9a-zA-Z]+', ' ', prompt)
-
-        for word in prompt.split():
-            if word.lower() in words: continue
-
-            word_embedding = np.array(openai.Embedding.create(input=word, engine='text-embedding-ada-002')['data'][0]['embedding'])
-            
-            # if the word is not relevant to a search query
-            if cosine_similarity(word_embedding, negative_embedding)>0.85:
-                continue
-            
-            results.append(cosine_similarity(word_embedding, prompt_embed))
-            words.append(word.lower())
-            embeds.append(prompt_embed)
-
-        # if no word is meaningful enough:
-        if max(results)<self.irrelevancy_threshold:
-            # ask ChatGPT to produce search keys:
-            # to be implemented
-            tags = self.gpt_extract_tags(prompt)
-            return tags
-
-        results = [float(i)/max(results) for i in results]
-
-        df = pd.DataFrame({'words':words, 'similarity':results, 'embeddings':embeds})
-
-        # find the keywords (research tags)
-        df = df.sort_values(by='similarity', ascending=False)
-        keys = []
-
-        for i in range(len(df['similarity'])):
-            word = df['words'][i]
-            score = df['similarity'][i]
-            
-            #  if relative 'power' [%] is high enough
-            if score >=0.95: 
-                keys.append(word)
-
-        print(f"Keys extracted: {keys}")
-        return keys
-        
 
     def extract_tags(self, text):
         text = text.split('user:')
@@ -282,11 +295,22 @@ class LocalSearchEngine:
             output = output.split(':')
             output = "".join(output[1:])
         return output
-    
-    def gpt_extract_tags(self, text):
-        # to be implemented
-        return 
 
+    def compute_embeds(self, words):
+        return openai.Embedding.create(input=words, engine=self.embed_model)['data'][0]['embedding']
+
+    def tldr(self, text, to_language):
+        context =f'tldr in {to_language}:'
+        CHAT = [{"role": "system", "content":context},
+                {"role": "user", "content":f"'{text}'"}]
+
+        response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    temperature=0,
+                    messages=CHAT)
+        
+        return response['choices'][0]['message']['content']
+    
 """
 OnlineSearchEngine:
 to be implemented:
