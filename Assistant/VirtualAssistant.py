@@ -27,11 +27,11 @@ import webrtcvad
       
 class VirtualAssistant:
     DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
-    RESPONSE_TIME = .5 #values that work well in my environment (ticks, not seconds)
-    SLEEP_DELAY = 1.5
-    
+    RESPONSE_TIME = 3 #values that work well in my environment (ticks, not seconds)
+    SLEEP_DELAY = 3 #seconds 
+    MIN_RECORDING_TIME = .5 #seconds
     MAX_RECORDING_TIME = 60 #seconds
-    VAD_AGGRESSIVENESS = 3 #1-3
+    VAD_AGGRESSIVENESS = 2 #1-3
     
 
     DEVICE_INDEX = myaudio.detect_microphones()[0]
@@ -451,6 +451,7 @@ class VirtualAssistant:
         frame_length_ms = 20
         vad_CHUNK = (vad_rate * frame_length_ms) // 1000
 
+
         p = pyaudio.PyAudio()
         vad_stream = p.open(format=self.FORMAT,
                         channels=self.CHANNELS,
@@ -468,38 +469,36 @@ class VirtualAssistant:
         try:
             silence_time = 0
             speaked = False
+            is_voice = False
             print("listening...")
             
             start_time = time.perf_counter()
-            last_voice_activity_time = 0
-
             while True:
                 rec_data = rec_stream.read(self.CHUNK)
                 frames.append(rec_data)
 
                 # detect voice activity
-                data = vad_stream.read(vad_CHUNK)
+                data = vad_stream.read(vad_CHUNK) 
+                                       
                 try:
-                    is_voice = self.vad.is_speech(data, vad_rate)
+                    is_voice = self.vad.is_speech(data, vad_rate) 
                 except Exception as e:
                     print(f"Error during VAD: {e}")
 
                 # Calculate time since the last voice activity
-                if is_voice:
+                if is_voice and (time.perf_counter()-start_time)>self.MIN_RECORDING_TIME:
                     speaked = True
                     silence_time = 0
-                    last_voice_activity_time = time.perf_counter()
                 else:
                     silence_time += frame_length_ms / 1000
 
                 # Print debugging information (useful for tuning sensitivity)
-                #print(f"is_voice: {is_voice}, silence_time: {silence_time}, speaked: {speaked}")
 
                 # Stop recording if silence duration exceeds the threshold or if the time limit is reached
                 if (silence_time > self.RESPONSE_TIME and speaked) or (time.perf_counter() - start_time > self.MAX_RECORDING_TIME):
                     break
 
-                if silence_time > self.SLEEP_DELAY:
+                if silence_time > self.MAX_RECORDING_TIME:
                     self.go_to_sleep()
                     break
                 
