@@ -65,7 +65,7 @@ def check_virtual_assistant():
     now = time.perf_counter()
     VA.translator.translate('ciao questo testo di moderate dimensioni da tradurre in lingua inglese', from_language='it', to_language='en')
     then = time.perf_counter()
-    print(f'time to get translate a short text: {then-now} seconds')
+    print(f'time to translate a short text: {then-now} seconds')
 
     VA.say('Welcome.\n I am Just A Very Intelligent System here to help', VoiceIdx='jarvis')
     VA.say('Welcome.\n I am Just A Very Intelligent System here to help', VoiceIdx='en')
@@ -82,7 +82,7 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 if __name__=='__main__':
-
+    print("testing keys")
     load_keys()
     check_openai()
     with suppress_stdout():
