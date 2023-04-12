@@ -17,7 +17,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import backup.get_audio as myaudio
 from Assistant.VirtualAssistant import VirtualAssistant
 
-openai.api_key = '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'
+openai.api_key = 'THis was an api key'
 
 text2 ="""user: What are transformers architecture and how can they be used in segmentation?
 assistant: The transformer architecture is a deep learning model that has been widely used in natural language processing applications due to its impressive performance in language translation and text generation tasks. The model is based on an attention mechanism that allows it to selectively focus on different parts of the input sequence, enabling it to capture long-range dependencies between words.
