@@ -404,8 +404,9 @@ class VirtualAssistant:
                 #(different wakewords activate different profiles?)
                 if keyword_index >= 0:
                     print("wakeword encountered")
-                    self.start_new_conversation()
                     self.play('wake.mp3',PlayAndWait=False)
+                    time.sleep(.5) #pause for a split second before actually starting to record.
+                    self.start_new_conversation()
                     self.is_awake = True
                     return
         finally:
