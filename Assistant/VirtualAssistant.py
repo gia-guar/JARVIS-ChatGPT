@@ -27,7 +27,7 @@ import webrtcvad
       
 class VirtualAssistant:
     DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
-    RESPONSE_TIME = 3 #values that work well in my environment (ticks, not seconds)
+    RESPONSE_TIME = 1.5 #values that work well in my environment (ticks, not seconds)
     SLEEP_DELAY = 3 #seconds 
     MIN_RECORDING_TIME = .5 #seconds
     MAX_RECORDING_TIME = 60 #seconds
