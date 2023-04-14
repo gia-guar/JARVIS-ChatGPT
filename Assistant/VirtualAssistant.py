@@ -9,16 +9,18 @@ import copy
 import openai
 import time
 import langid
-import Assistant.get_audio as myaudio
+import torch
 
+import Assistant.get_audio as myaudio
 from .voice import *
 from .tools import Translator, LocalSearchEngine
+from .webui import oobabooga_textgen
 
 # imports for audio
+import whisper
 import wave
 import pyaudio
 import speech_recognition as sr
-import audioop
 import time
 import sys
 from contextlib import contextmanager 
@@ -45,9 +47,10 @@ class VirtualAssistant:
     CONVERSATION_LONG_ENOUGH = 4 #interactions (2 questions)
 
     def __init__(self, 
-                 whisper_model, 
+                 whisper_model=None, 
                  awake_with_keywords = ['elephant'],
                  model = "gpt-3.5-turbo",
+                 offline_model = None,
                  embed_model = "text-embedding-ada-002",
                  translator_model = 'argostranslator',
                  **kwargs):
@@ -55,6 +58,13 @@ class VirtualAssistant:
             openai.api_key = kwargs['openai_api']
         except:
             print('OpenAI API key not found')
+        
+        # Filling the GPU with the model
+        if whisper_model == None:
+            if 'whisper_size' not in kwargs: raise Exception('whisper model needs to be specified')
+            self.interpreter = whisper.load_model(kwargs['whisper_size'])
+        else:
+            self.interpreter = whisper_model
 
         # STATUS
         self.DIRECTORIES={
@@ -90,6 +100,7 @@ class VirtualAssistant:
         self.voice = Voice(**kwargs)
         self.translator = Translator(model=translator_model, translator_languages = list(self.languages.keys()))
         self.answer_engine = model
+        self.offline_answer_engine = offline_model
         self.search_engine = LocalSearchEngine(
             embed_model = embed_model, 
             tldr_model = model,
@@ -109,11 +120,9 @@ class VirtualAssistant:
         else:
             self.Keywords = awake_with_keywords
         self.Keywords = awake_with_keywords
-
         self.ears = sr.Recognizer()
-        self.interpreter = whisper_model
 
-    
+
         # init finished
         self.play('system_online_bleep.mp3')
     
@@ -134,7 +143,6 @@ class VirtualAssistant:
             except:
                 self.play('error.mp3', PlayAndWait=True)
                 print(f"{kwargs[item]}: not found")
-
 
     def go_to_sleep(self):
         print('[Assistant going to sleep]')
@@ -174,7 +182,7 @@ class VirtualAssistant:
 
     def expand_conversation(self, role, content): self.current_conversation.append({"role":role, "content":content})
 
-    def get_answer(self, question, update=False):
+    def get_answer(self, question, update=False, mode='online', optimize_cuda = False):
         if update==True:
             self.expand_conversation(role="user", content=question)
             temp = self.current_conversation
@@ -183,11 +191,27 @@ class VirtualAssistant:
             temp.append({"role":"user", "content":question})
 
         self.play('thinking.mp3')
-        API_response = openai.ChatCompletion.create(
-            model=self.answer_engine,
-            messages=temp)
-        
-        answer = API_response['choices'][0]['message']['content']
+
+        if mode=='online':
+            API_response = openai.ChatCompletion.create(
+                model=self.answer_engine,
+                messages=temp)
+            answer = API_response['choices'][0]['message']['content']
+        elif mode=='offline':
+            if self.offline_answer_engine == 'anon8231489123_vicuna-13b-GPTQ-4bit-128g':
+                lang_id = langid.classify(question)[0]
+                if optimize_cuda:
+                    # free space on the GPU
+                    self.switch_whisper_device()
+                # use GPU to process the answer
+                answer = oobabooga_textgen(prompt = temp)
+                answer = self.translator.translate(answer, from_language=langid.classify(answer)[0], to_language=lang_id)
+                if optimize_cuda:
+                    # try to get the model back to GPU
+                    self.switch_whisper_device()
+            elif self.offline_answer_engine == 'eachadea_ggml-vicuna-13b-4bit':
+                answer = oobabooga_textgen(prompt = question)
+                
         self.expand_conversation(role="assistant", content=answer)
 
         self.last_interaction = time.perf_counter()
@@ -218,6 +242,56 @@ class VirtualAssistant:
         return #conversation in json format 
 
     # ACTIONS ##################################################################################
+    def deallocate_whisper(self):
+        model_name = self.interpreter.name
+        model_current_device = self.interpreter.device
+
+        self.interpreter = None
+        torch.cuda.empty_cache()
+
+        if model_current_device.type == 'cuda':
+            print('loading Whisper model to cpu')
+            self.interpreter = whisper.load_model(model_name, device='cpu')
+        torch.cuda.empty_cache()
+
+    def allocate_whisper(self):
+        model_name = self.interpreter.name
+        model_current_device = self.interpreter.device
+
+        self.interpreter = None
+        torch.cuda.empty_cache()
+        if model_current_device.type == 'cpu':
+            try:
+                torch.cuda.empty_cache()
+                print('loading Whisper model to CUDA')
+                self.interpreter = whisper.load_model(model_name, device='cuda')
+            except:
+                print(f"cuda dedicated memory isufficient: {torch.cuda.memory_allocated()/1e6} GB already occupuied")
+                print(f"keeping Whisper model to cpu")
+                self.interpreter = whisper.load_model(model_name, device='cpu')
+        torch.cuda.empty_cache()
+                
+    def switch_whisper_device(self):
+        model_name = self.interpreter.name
+        model_current_device = self.interpreter.device
+
+        self.interpreter = None
+        torch.cuda.empty_cache()
+
+        if model_current_device.type == 'cuda':
+            print('loading Whisper model to cpu')
+            self.interpreter = whisper.load_model(model_name, device='cpu')
+            torch.cuda.empty_cache()
+        else:
+            try:
+                torch.cuda.empty_cache()
+                print('loading Whisper model to CUDA')
+                self.interpreter = whisper.load_model(model_name, device='cuda')
+            except:
+                print(f"cuda dedicated memory isufficient: {torch.cuda.memory_allocated()/1e6} GB already occupuied")
+                print(f"keeping Whisper model to cpu")
+                self.interpreter = whisper.load_model(model_name, device='cpu')
+                torch.cuda.empty_cache()
     
 
     def confirm_choice(self, confirm_question, lang_id=None):

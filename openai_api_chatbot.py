@@ -21,7 +21,6 @@ if len(os.environ['PORCUPINE_KEY']) == 0:
 print('DONE\n')
 
 print('### IMPORTING DEPENDANCIES ###')
-import whisper
 import pygame
 
 from Assistant import get_audio as myaudio
@@ -35,11 +34,10 @@ print('DONE\n')
 ### MAIN
 if __name__=="__main__":
     print("### SETTING UP ENVIROMENT ###")
-    
+    OFFLINE = True
     SOUND_DIR = os.path.join('sounds')
     
     print('loading whisper model...')
-    whisper_model = whisper.load_model("large") # pick the one that works best for you, but remember: only medium and large are multi language
 
     print('opening pygame:')
     pygame.mixer.init()
@@ -51,9 +49,10 @@ if __name__=="__main__":
         ibm_api    = os.getenv('IBM_API_KEY'),
         ibm_url    = os.getenv('IBM_TTS_SERVICE'),
         voice_id   = 'friday_en',
-        whisper_model= whisper_model,
+        whisper_size='large',
         awake_with_keywords=["jarvis"],
         model= "gpt-3.5-turbo",
+        offline_model= 'anon8231489123_vicuna-13b-GPTQ-4bit-128g', # Runs on GPU (lots of space required)
         embed_model= "text-embedding-ada-002",
         RESPONSE_TIME = 3,
         SLEEP_DELAY = 30,
@@ -74,7 +73,7 @@ if __name__=="__main__":
         
 
         if jarvis.is_awake:
-            question, detected_language = myaudio.whisper_wav_to_text('output.wav', whisper_model, prior=jarvis.languages.keys())
+            question, detected_language = myaudio.whisper_wav_to_text('output.wav', jarvis.interpreter, prior=jarvis.languages.keys())
 
             # check exit command
             if "THANKS" in question.upper() or len(question.split())<=1:
@@ -88,7 +87,10 @@ if __name__=="__main__":
             
             # PROMPT MANAGING [BETA]
             jarvis.expand_conversation(role="user", content=question)
-            flag = jarvis.analyze_prompt()
+
+            flag = "2" 
+            if not(OFFLINE):
+                flag = jarvis.analyze_prompt()
 
             try:
                 print('(thought): ', flag)
@@ -100,7 +102,7 @@ if __name__=="__main__":
             
             # count tokens to satisfy the max limits
             # <to do>
-            response = jarvis.get_answer(question, update=False)
+            response = jarvis.get_answer(question, update=False, mode='offline'if OFFLINE else 'online')
             jarvis.say(response, VoiceIdx=VoiceIdx)
 
             print('\n')

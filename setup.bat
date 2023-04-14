@@ -26,6 +26,10 @@ call pip install --upgrade pip
 echo Installing required packages...
 call pip install -r venv_requirements.txt
 
+echo Overwriting the OpenAI-Whisper packages
+move .\whisper_edits\__init__.py, .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
+rmdir whisper_edits
+
 echo Downloading TTS repository as a ZIP file...
 call curl -L -o tts.zip https://github.com/coqui-ai/TTS/archive/refs/heads/dev.zip
 
@@ -85,6 +89,11 @@ if "%CUDA_VERSION%"=="unknown" (
         echo Please install pytorch according to your CUDA version: "%CUDA_VERSION%"
     )
 )
+
+echo Preparing to install Vicuna GPT from TroubleChute (https://hub.tcno.co/ai/text-ai/vicuna/)
+cd Vicuna
+call vicuna.ps1
+
 echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo Setup complete!
 echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

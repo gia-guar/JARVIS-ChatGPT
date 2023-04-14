@@ -1,5 +1,13 @@
 # Update History
-
+---
+## APRIL 15th 2023 UPDATE: Vicuna Integration and offline modality
+Worked hard to bring a local, free, alternative to OpenAI GPT models since lately some open-source competition is arising. Vicuna is a free GPT model that is claimed to be 90% as good as ChatGPT4. My plan is to **integrate** this model with ChatGPT rather than straight-out substitute it. This is because OpenAI API is more reliable, faster and doesn't seem to suffer from hallucinations (i.e. when a conversational AI generates a response to a prompt that is either false or irrelevant to the original request). The installation of this model is one-click but, since the model is hardware-dependant, the response time will vary according to your hardware capabilities. I made a more [in-depth analysis](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main/Vicuna/README.md) on whether should you install it or just stick to OpenAI.<br>
+The gist comes down to how much vRAM and RAM you have. The oogabooga ui backed is pretty efficient in dynamically allocating the models.
+- ! Move the files from the ```whisper_edits``` folder to the ```.venv\lib\site-packages\whisper``` ! <span style="color:grey"> this is needed to allocate better the whisper model btween GPU vRAM and RAM;</span><br> 
+- Added measures to improve GPU memory allocation; see ```get_answer(optimize_cuda=Ture)``` <span style="color:grey"> this is beta, I
+ still need to integrate in a more built-in way with the rest of the scripts;</span>
+- Added OFFLINE toggle to run exclusively locally and avoid credit consumption <span style="color:grey"> this is beta, I still need to integrate in a more built-in way with the rest of the scripts;</span>
+---
 ---
 ## APRIL 11th 2023 UPDATE: Overall improvement to search engine, update README.md
 new: ```pip install argostranslate pvporcupine python-dotenv```
