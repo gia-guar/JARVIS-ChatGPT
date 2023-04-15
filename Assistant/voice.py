@@ -4,7 +4,12 @@ from ibm_watson import TextToSpeechV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from TTS.api import TTS
 import os
-
+import elevenlabslib
+from contextlib import contextmanager
+import pygame
+from pydub import AudioSegment
+import io
+import sys
 
 class Voice:
     def __init__(self, **kwargs):   
@@ -23,21 +28,95 @@ class Voice:
             print('  3/3: Setting up cloud service ...')
             tts.set_service_url(url)
             print('    ✓ service established\n')
-            self.tts_service = [tts]
+            self.tts_service = tts
         except:
             print('IBM authentication failed')
 
-        # PYTTSX3
+        if 'elevenlabs_api' in list(kwargs.keys()):
+            eleven_labs_user = elevenlabslib.ElevenLabsUser(kwargs['elevenlabs_api'])
+            
+            if 'elevenlabs_voice' in list(kwargs.keys()):
+                if kwargs['elevenlabs_voice'] in (voice.initialName for voice in eleven_labs_user.get_all_voices()):
+                    self.elevenlabs_voice = eleven_labs_user.get_voices_by_name(kwargs['elevenlabs_voice'])[0]
+
+            # <to do: initiate Jarvis cloned voice if available and disable TTS>
+
+        # PYTTSX3 for backup plan
         engine = pyttsx3.init()
 
         # SYNTHETIC VOICES
         # CoquiAI -  coqui-ai/TTS (https://github.com/coqui-ai/tts)
         synth = TTS(model_name=os.path.join("tts_models/multilingual/multi-dataset/your_tts"), progress_bar=False, gpu=True)  
 
+        self.write_dir = kwargs['write_dir']
         self.path = kwargs['voice_id']
         self.synthetic_voice = synth
         self.offline = engine
-    
+
+
+
+
+    def speak(self, text, VoiceIdx, mode, LangIdx='en', elevenlabs=False, IBM=False):    
+        ## generate the speech: last_answer.wav
+        if mode == 'online':
+            if  elevenlabs==True:
+                if  VoiceIdx == 'en':
+                    try:
+                        audio = self.elevenlabs_voice.generate_audio_bytes(text)
+                        audio = AudioSegment.from_file(io.BytesIO(audio), format="mp3")
+                        audio.export(os.path.join(self.write_dir, "last_answer.wav"), format="wav")
+                    except:
+                        print('Elevenlabs credit might have ended')
+                        raise Exception
+
+                if VoiceIdx == 'jarvis':
+                    # to do: use voice duplication from elevenlabs
+                    print('(ElevenLabs Jarvis voice not yet available)')
+                    raise Exception()
+
+            elif IBM==True:
+                with open(os.path.join(self.write_dir, "last_answer.wav"),'wb') as audio_file:
+                    try:
+                        res = self.tts_service.synthesize(text, accept='audio/wav', voice=get_ibm_voice_id(VoiceIdx)).get_result()
+                        audio_file.write(res.content)
+                    except:
+                        print('(IBM credit might have ended)')
+                        raise Exception
+
+        if mode == 'offline':
+            if VoiceIdx == 'jarvis':
+                if LangIdx == 'en':
+                    with suppress_stdout():
+                        self.synthetic_voice.tts_to_file(text=text, speaker_wav=self.path, language="en", file_path=os.path.join(self.write_dir, 'last_answer.wav'))
+                
+                """ Idea for multiple language Text-To-Speech: dictionaries
+                if VoiceIdx == 'other-language':
+                    self.synthetic_voice['other-language'].tts_to_file(text=text, speaker_wav=self.path, language="en", file_path=os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'))
+                """
+            else:
+                self.offline = self.change_offline_lang(lang_id=VoiceIdx)
+                self.offline.say(text)
+                self.offline.runAndWait()
+                return
+        
+        # play the generated speech:
+        if pygame.mixer.get_init() is None:pygame.mixer.init()
+        pygame.mixer.music.load(os.path.join(self.write_dir, 'last_answer.wav'))
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play()
+        while(pygame.mixer.music.get_busy()): pass
+        pygame.mixer.music.load(os.path.join(self.write_dir,'empty.mp3'))
+
+
+
+    def change_offline_lang(self, lang_id):
+        try:
+            for voice in self.offline.getProperty('voices'):
+                if self.languages[lang_id] in voice.name:
+                    self.offline.setProperty('voice', voice.id)
+                    return self.offline
+        except Exception as e:      
+            print('error: ',e)
 
 # know more at: https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices
 def get_ibm_voice_id(VoiceIdx):
@@ -94,3 +173,14 @@ def get_ibm_voice_id(VoiceIdx):
         'sv':'sv-SE_IngridVoice'
         }
     return voices[VoiceIdx]
+
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout

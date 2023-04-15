@@ -1,14 +1,16 @@
 import openai
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 """
-have chats with stright from your PC
+have chats with CHATGPT straight from your command line (useful for code)
 """
 
 
 CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
 
 # Set your openai api key
-openai.api_key = ''
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 while True:
     try:

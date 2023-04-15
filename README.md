@@ -1,5 +1,7 @@
 # JARVIS-ChatGPT: A conversational assistant equipped with J.A.R.V.I.S's voice
 **A voice-based interactive assistant equipped with a variety of synthetic voices (including J.A.R.V.I.S's voice from IronMan)**
+
+![GitHub last commit](https://img.shields.io/github/last-commit/gianmarcoguarnier/JARVIS-ChatGPT?style=for-the-badge)
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/227788148-a8ff8e06-86a4-41a6-aa53-8b7d6855360c.png"/>
   <span style=color:grey> <i>image by MidJourney AI </i> </span>
@@ -33,6 +35,7 @@ Worked hard to bring a local, free, alternative to OpenAI GPT models since latel
 
  - An [OpenAI](https://openai.com) account and API key; (check FAQs below for the alternatives)
  - <i>[PicoVoice](https://picovoice.ai/platform/porcupine/) account and a free AccessKey; (optional) </i>
+ - <i>[ElevenLabs](https://beta.elevenlabs.io/) account and free Api Key (optional)</i>;
  - [ffmpeg](https://ffmpeg.org/) ;
  - Python virtual environment (Python>=3.8 and <3.10);
  - <i> Some credit to spend on ChatGPT (you can get three months of free usage by signing up to OpenAI) (suggested)</i>;
@@ -43,18 +46,18 @@ Worked hard to bring a local, free, alternative to OpenAI GPT models since latel
  - CUDA capable graphic engine (my Torch Version: 2.0 and CUDA v11.7 ```pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117```);
  - Patience :sweat_smile:
 
->You can follow a [YT video](https://www.youtube.com/watch?v=AcCG7DOwhG8&t=1s) I made to guide you through the installation, but remember it's getting obsolete quickly so mind this README for specifications like the Python version (3.8 instead of 3.7). <br>
+> you can rely on the new ```setup.bat``` that will do most of the things for you.
 
->Alternatively, you can rely on the new ```setup.bat``` that will do most of the things for you.
+> Alternatively, You can follow a [YT video](https://www.youtube.com/watch?v=AcCG7DOwhG8&t=1s) I made to guide you through the installation, but remember it's getting obsolete quickly so mind this README for specifications like the Python version (3.8 instead of 3.7). <br>
 
-# TUTORIAL
 ## GitHub overview
 **MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API Inside the demos folder you'll find some guidance for the packages used in the project, if you have errors you might check these files first to target the problem. Mostly is stored in the Assistant folder: `get_audio.py` stores all the functions to handle mic interactions, `tools.py` implements some basic aspects of the Virtual Assistant, `voice.py` describes a (very) rough Voice class <br> The remaining scripts are supplementary to the voice generation and should not be edited.
 
-## AUTOMATIC INSTALLATION
+# INSTALLATION TUTORIAL
+## Automatic installation
 You can run ```setup.bat``` if you are running on Windows/Linux. The script will perform every step of the manual installation in sequence. Refer to those in case the procedure should fail.<br>
 The automatic installation will also run the Vicuna installation ([Vicuna Installation Guide](https://hub.tcno.co/ai/text-ai/vicuna/))
-## MANUAL INSTALLATION
+## Manual Installation
 ## Step 1: installation, accounts, APIs... 
 ### Environment
 1. Make a new, empty virtual environment with Python 3.8 and activate it (.\venv_name\Scripts\activate );
@@ -68,9 +71,8 @@ The automatic installation will also run the Vicuna installation ([Vicuna Instal
 ```cd Vicuna```<br>
 ```call vicuna.ps1```<br></p>
 <span style="color:grey"> Manual instructions will instruct you to follow the [Vicuna Installation Guide](https://hub.tcno.co/ai/text-ai/vicuna/) </span> 
-
-10. Check everything works *(following)*
-11. paste all your keys in the ```env.txt``` file and rename it to ```.env``` (yes, remove the txt extension)
+10. paste all your keys in the ```env.txt``` file and rename it to ```.env``` (yes, remove the txt extension)
+11. Check everything works *(following)*
 <br>
 
 ### Checks

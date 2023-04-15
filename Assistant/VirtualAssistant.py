@@ -23,7 +23,8 @@ import pyaudio
 import speech_recognition as sr
 import time
 import sys
-from contextlib import contextmanager 
+from contextlib import contextmanager
+
 #module used for speaking during recording
 import webrtcvad
       
@@ -97,7 +98,7 @@ class VirtualAssistant:
             # add yours
         }
 
-        self.voice = Voice(**kwargs)
+        self.voice = Voice(write_dir = self.DIRECTORIES['SOUND_DIR'], **kwargs)
         self.translator = Translator(model=translator_model, translator_languages = list(self.languages.keys()))
         self.answer_engine = model
         self.offline_answer_engine = offline_model
@@ -383,57 +384,37 @@ class VirtualAssistant:
         if PlayAndWait:
             while(pygame.mixer.music.get_busy()):pass
 
-    def say(self, text, VoiceIdx='jarvis'):    
-        ## Pick the right voice
-        if VoiceIdx != 'jarvis':
-            # Try online 
-            try:    
-                if not os.path.isdir('saved_chats'): os.mkdir("saved_chats")
-                with open(os.path.join(os.getcwd(),'Assistant' 'answers','speech.mp3'),'wb') as audio_file:
-                    res = self.voice.tts_service.synthesize(text, accept='audio/mp3', voice=get_ibm_voice_id(VoiceIdx)).get_result()
-                    audio_file.write(res.content)
-
-                ## SAY OUTLOUD
-                if pygame.mixer.get_init() is None:
-                    pygame.mixer.init()
-                pygame.mixer.music.load("./answers/speech.mp3")
-                pygame.mixer.music.set_volume(0.5)
-                pygame.mixer.music.play()
-                while(pygame.mixer.music.get_busy()): pass
-                pygame.mixer.music.load(os.path.join('voices','empty.mp3'))
-                os.remove("./answers/speech.mp3")
-            
-            # go offline if fail
-            except:
-                print('*!* IBM credit likely ended *!*  > using pyttsx3 for voice generation')
-                print(f'\n[assistant]: {text}')
-                
-                try:
-                    self.voice.offline = self.change_offline_lang(lang_id=VoiceIdx)
-                    self.voice.offline.say(text)
-                    self.voice.offline.runAndWait()
+    def say(self, text, VoiceIdx='jarvis', elevenlabs=False, IBM=False):   
+        if elevenlabs and IBM: raise(Exception('IBM and ElevenLabs can t be both true'))
+        if VoiceIdx=='jarvis' and IBM: raise(Exception('IBM tts does not support voice cloning'))    
+        
+        if elevenlabs:
+            try:
+                try: 
+                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=True, IBM=False, mode='online')
+                    return
                 except:
-                    text = self.translator.translate(input=text, language='english')
-                    self.voice.offline = self.change_offline_lang(lang_id='en')
-                    self.voice.offline.say(text)
-                    self.voice.offline.runAndWait()
-
-        else:
-            print(f'\n[assistant]: {text}')   
-            with suppress_stdout():
-                self.voice.synthetic_voice.tts_to_file(text=text, speaker_wav=self.voice.path, language="en", file_path=os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'))
-                self.play(os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'), PlayAndWait=True)
-
-    # allows pyttsx3's text to speech engine to change language
-    def change_offline_lang(self, lang_id):
-        try:
-            for voice in self.voice.offline.getProperty('voices'):
-                if self.languages[lang_id] in voice.name:
-                    self.voice.offline.setProperty('voice', voice.id)
-                    return self.voice.offline
-        except Exception as e:      
-            print('error: ',e)
-    
+                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=True, mode='online')
+                    return
+            except:
+                self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
+                return
+        
+        if IBM:
+            try:
+                try: 
+                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=True, mode='online')
+                    return
+                except:
+                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='online')
+                    return
+            except:
+                self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
+                return
+            
+        raise Exception('No such specifications')
+        
+            
 
     # LISTEN #############################################################################################
 
