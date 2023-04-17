@@ -19,15 +19,16 @@ echo Found CUDA version: %CUDA_VERSION%
 echo Creating a new virtual environment...
 call py -3.8 -m venv jarvis_venv
 call .\jarvis_venv\Scripts\activate
-
+call python --version
+pause
 echo Upgrading pip...
-call pip install --upgrade pip
+call python -m pip install --upgrade pip
 
 echo Installing required packages...
 call pip install -r venv_requirements.txt
 
 echo Overwriting the OpenAI-Whisper packages
-move .\whisper_edits\__init__.py, .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
+move .\whisper_edits\__main__.py, .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
 rmdir whisper_edits
 
 echo Downloading TTS repository as a ZIP file...
@@ -92,7 +93,7 @@ if "%CUDA_VERSION%"=="unknown" (
 
 echo Preparing to install Vicuna GPT from TroubleChute (https://hub.tcno.co/ai/text-ai/vicuna/)
 cd Vicuna
-call vicuna.ps1
+powershell .\vicuna.ps1
 
 echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 echo Setup complete!
