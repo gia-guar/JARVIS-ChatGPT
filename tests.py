@@ -1,3 +1,9 @@
+"""
+RUN THIS TO CHECK FOR ERRORS AFTER INSTALLATION
+It tries to do some stuff that might raise errors. If tracebacks occurs something might wrong with your environment
+or APIs credentials
+"""
+
 import os
 import whisper
 import pygame

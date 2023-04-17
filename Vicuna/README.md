@@ -62,11 +62,12 @@ You can also download manually using the following syntax on CMD: <br>
 * [GPT-J 6B](https://huggingface.co/EleutherAI/gpt-j-6B/tree/main)
 
 
-## 6. Edit the ```start-webui-vicuna.bat```
+## 6. Edit the ```start-webui-vicuna.bat``` or run ```start-webui-vicuna-gpu.bat```
 change the last line with:<br>
  - if you are using GPU:
 ``` call python server.py --wbits 4 --groupsize 128 --listen --no-stream --model anon8231489123_vicuna-13b-GPTQ-4bit-128g --notebook --extension api```
  - If you are using CPU: ```call python server.py --model eachadea_ggml-vicuna-13b-4bit --listen --no-stream --notebook --extension api```
-
+<br>
+This edit is already applied in the file ```start-webui-vicuna-gpu.bat``` you'll find in this folder
 You should be able to run the ```.bat``` file with no errors and the following message should appear: <br>Running on local URL:  http://0.0.0.0:786<br>
 To create a public link, set `share=True` in `launch()`.
