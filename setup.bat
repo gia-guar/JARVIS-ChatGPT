@@ -28,7 +28,8 @@ echo Installing required packages...
 call pip install -r venv_requirements.txt
 
 echo Overwriting the OpenAI-Whisper packages
-move .\whisper_edits\__main__.py, .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
+move .\whisper_edits\__init__.py .\jarvis_venv\Lib\site-packages\whisper
+move .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
 rmdir whisper_edits
 
 echo Downloading TTS repository as a ZIP file...
