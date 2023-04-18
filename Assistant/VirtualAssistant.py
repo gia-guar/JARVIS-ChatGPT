@@ -41,7 +41,7 @@ class VirtualAssistant:
     CHUNK = 1024
     FORMAT = pyaudio.paInt16
     CHANNELS = myaudio.get_device_channels()[DEVICE_INDEX]
-    RATE = 44100
+    RATE = int(myaudio.get_devices()[DEVICE_INDEX]['defaultSampleRate'])
 
     print('using input device: ', myaudio.get_devices()[DEVICE_INDEX]['name'])
 
@@ -191,7 +191,7 @@ class VirtualAssistant:
             temp = copy.deepcopy(self.current_conversation)
             temp.append({"role":"user", "content":question})
 
-        self.play('thinking.mp3')
+        self.play('thinking.mp3', loop=True)
 
         if mode=='online':
             API_response = openai.ChatCompletion.create(
@@ -225,7 +225,7 @@ class VirtualAssistant:
         if not os.path.isdir(self.DIRECTORIES['CHAT_DIR']): os.mkdir(self.DIRECTORIES['CHAT_DIR'])
         
         title = self.get_answer(question="generate a very short title for this conversation", update=False)
-        self.say(f'I am saving this conversation with title: {title}', VoiceIdx='en')
+        self.say(f'I am saving this conversation with title: {title}', VoiceIdx='en', mode='offline')
 
         self.play('data_writing.mp3', PlayAndWait=True)
 
@@ -385,6 +385,7 @@ class VirtualAssistant:
             while(pygame.mixer.music.get_busy()):pass
 
     def say(self, text, VoiceIdx='jarvis', elevenlabs=False, IBM=False):   
+        print(f"[Assistant]: {text}")
         if elevenlabs and IBM: raise(Exception('IBM and ElevenLabs can t be both true'))
         if VoiceIdx=='jarvis' and IBM: raise(Exception('IBM tts does not support voice cloning'))    
         
@@ -406,15 +407,17 @@ class VirtualAssistant:
                     self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=True, mode='online')
                     return
                 except:
-                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='online')
+                    self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=True, IBM=False, mode='online')
                     return
             except:
                 self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
                 return
-            
-        raise Exception('No such specifications')
         
-            
+        try: 
+            self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
+        except:
+            raise Exception('No such specifications')
+
 
     # LISTEN #############################################################################################
 
@@ -493,8 +496,10 @@ class VirtualAssistant:
     def record_to_file(self, file_path):
         wf = wave.open(file_path, 'wb', )
         wf.setnchannels(self.CHANNELS)
-        sample_width, frames = self.record()
+        sample_width = pyaudio.PyAudio().get_sample_size(self.FORMAT)
         wf.setsampwidth(sample_width)
+        frames = self.record()
+        
         wf.setframerate(self.RATE)
         wf.writeframes(b''.join(frames))
         wf.close()
@@ -508,7 +513,7 @@ class VirtualAssistant:
 
         p = pyaudio.PyAudio()
         vad_stream = p.open(format=self.FORMAT,
-                        channels=self.CHANNELS,
+                        channels=1,
                         rate=vad_rate,
                         input=True,
                         frames_per_buffer=vad_CHUNK)
@@ -565,13 +570,12 @@ class VirtualAssistant:
             print(silence_time,self.RESPONSE_TIME,self.SLEEP_DELAY)
             exit()
 
-        sample_width = p.get_sample_size(self.FORMAT)
         vad_stream.stop_stream()
         vad_stream.close()
         rec_stream.stop_stream()
         rec_stream.close()
         p.terminate()
-        return sample_width, frames
+        return frames
     
 
 @contextmanager

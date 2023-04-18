@@ -45,13 +45,13 @@ if __name__=="__main__":
     # INITIATE JARVIS
     print('initiating JARVIS voice...')
     jarvis = VirtualAssistant(
-        openai_api = os.getenv('OPENAI_API_KEY'),
-        ibm_api    = os.getenv('IBM_API_KEY'),
-        ibm_url    = os.getenv('IBM_TTS_SERVICE'),
+        openai_api   = os.getenv('OPENAI_API_KEY'),
+        ibm_api      = os.getenv('IBM_API_KEY'),
+        ibm_url      = os.getenv('IBM_TTS_SERVICE'),
         elevenlabs_api = os.getenv('ELEVENLABS_API_KEY'),
         elevenlabs_voice = '',
-        voice_id   = 'jarvis_en',
-        whisper_size='large',
+        voice_id     = 'jarvis_en',
+        whisper_size = 'medium',
         awake_with_keywords=["jarvis"],
         model= "gpt-3.5-turbo",
         offline_model= 'anon8231489123_vicuna-13b-GPTQ-4bit-128g', # Runs on GPU (lots of space required)
@@ -105,6 +105,6 @@ if __name__=="__main__":
             # count tokens to satisfy the max limits
             # <to do>
             response = jarvis.get_answer(question, update=False, mode='offline'if OFFLINE else 'online')
-            jarvis.say(response, VoiceIdx=VoiceIdx)
+            jarvis.say(response, VoiceIdx=VoiceIdx, IBM=True)
 
             print('\n')
