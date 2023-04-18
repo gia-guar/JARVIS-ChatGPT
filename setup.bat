@@ -17,9 +17,10 @@ for /f "delims=" %%i in ('powershell -command "(Get-Content -Path $env:CUDA_PATH
 echo Found CUDA version: %CUDA_VERSION%
 
 echo Creating a new virtual environment...
-call py -3.8 -m venv jarvis_venv
+call py -3.9 -m venv jarvis_venv
 call .\jarvis_venv\Scripts\activate
 call python --version
+
 pause
 echo Upgrading pip...
 call python -m pip install --upgrade pip
@@ -33,10 +34,16 @@ move .\whisper_edits\model.py .\jarvis_venv\Lib\site-packages\whisper
 rmdir whisper_edits
 
 echo Downloading TTS repository as a ZIP file...
+call pip install tts==0.13.0
 call curl -L -o tts.zip https://github.com/coqui-ai/TTS/archive/refs/heads/dev.zip
 
 echo Extracting TTS repository...
 powershell -command "Expand-Archive -Path .\tts.zip -DestinationPath .\temp_tts_folder -Force"
+
+cd .\temp_tts_folder\TTS-dev\
+pip install -e .[all,dev,notebooks]
+cd..
+cd..
 
 echo Moving test_TTS.py into the TTS repository...
 copy test_TTS.py temp_tts_folder\TTS-dev

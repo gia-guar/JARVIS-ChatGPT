@@ -22,15 +22,9 @@ try:
 
     # Example voice cloning with YourTTS in English, French and Portuguese:
     tts = TTS(model_name="tts_models/multilingual/multi-dataset/your_tts", progress_bar=False, gpu=True)
-    tts.tts_to_file("This is voice cloning.", speaker_wav="my/cloning/audio.wav", language="en", file_path="output.wav")
-    tts.tts_to_file("C'est le clonage de la voix.", speaker_wav="my/cloning/audio.wav", language="fr-fr", file_path="output.wav")
-    tts.tts_to_file("Isso é clonagem de voz.", speaker_wav="my/cloning/audio.wav", language="pt-br", file_path="output.wav")
-
-
-    # Example voice conversion converting speaker of the `source_wav` to the speaker of the `target_wav`
-
-    tts = TTS(model_name="voice_conversion_models/multilingual/vctk/freevc24", progress_bar=False, gpu=True)
-    tts.voice_conversion_to_file(source_wav="my/source.wav", target_wav="my/target.wav", file_path="output.wav")
+    tts.tts_to_file("This is voice cloning.", speaker_wav=".\Assistant\\voices\\voices.wav", language="en", file_path="output.wav")
+    tts.tts_to_file("C'est le clonage de la voix.", speaker_wav=".\Assistant\\voices\\voices.wav", language="fr-fr", file_path="output.wav")
+    tts.tts_to_file("Isso é clonagem de voz.", speaker_wav=".\Assistant\\voices\\voices.wav", language="pt-br", file_path="output.wav")
 
     # Example voice cloning by a single speaker TTS model combining with the voice conversion model. This way, you can
     # clone voices by using any model in 🐸TTS.
@@ -38,7 +32,7 @@ try:
     tts = TTS("tts_models/de/thorsten/tacotron2-DDC")
     tts.tts_with_vc_to_file(
         "Wie sage ich auf Italienisch, dass ich dich liebe?",
-        speaker_wav="target/speaker.wav",
+        speaker_wav=".\Assistant\\voices\\voices.wav",
         file_path="ouptut.wav"
     )
 
@@ -51,5 +45,6 @@ try:
     models = TTS().list_models()
     # Init TTS with the target studio speaker
     tts = TTS(model_name="coqui_studio/en/Torcull Diarmuid/coqui_studio", progress_bar=False, gpu=False)
-except:
+except Exception as e:
+    print(e)
     pass

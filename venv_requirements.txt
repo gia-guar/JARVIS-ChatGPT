@@ -5,6 +5,7 @@ apache-beam==2.40.0
 appdirs==1.4.4
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
+argostranslate
 astor==0.8.1
 astunparse==1.6.3
 async-timeout==4.0.2
@@ -34,6 +35,7 @@ dill==0.3.1.1
 dm-tree==0.1.7
 docopt==0.6.2
 einops==0.6.0
+elevnlabslib
 entrypoints==0.4
 et-xmlfile==1.1.0
 etils==0.6.0
@@ -112,7 +114,7 @@ numba==0.56.0
 numpy
 oauth2client==4.1.3
 oauthlib==3.2.0
-openai==0.8.0
+openai==0.27.4
 opencv-python==4.5.5.64
 opencv-python-headless==4.7.0.68
 openpyxl==3.0.10
