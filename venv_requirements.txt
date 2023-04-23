@@ -35,7 +35,7 @@ dill==0.3.1.1
 dm-tree==0.1.7
 docopt==0.6.2
 einops==0.6.0
-elevnlabslib
+elevenlabslib
 entrypoints==0.4
 et-xmlfile==1.1.0
 etils==0.6.0
