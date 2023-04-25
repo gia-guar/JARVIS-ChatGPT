@@ -22,12 +22,13 @@ https://user-images.githubusercontent.com/49094051/231303323-9859e028-33e1-490d-
 <br>
 
 ---
-## APRIL 15th 2023 UPDATE: Vicuna Integration and offline modality
-Worked hard to bring a local, free, alternative to OpenAI GPT models since lately some open-source competition is arising. Vicuna is a free GPT model that is claimed to be 90% as good as ChatGPT4. My plan is to **integrate** this model with ChatGPT rather than straight-out substitute it. This is because OpenAI API is more reliable, faster and doesn't seem to suffer from hallucinations (i.e. when a conversational AI generates a response to a prompt that is either false or irrelevant to the original request). The installation of this model is one-click but, since the model is hardware-dependant, the response time will vary according to your hardware capabilities. I made a more [in-depth analysis](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main/Vicuna/README.md) on whether should you install it or just stick to OpenAI.
-- ! Move the files from the ```whisper_edits``` folder to the ```.venv\lib\site-packages\whisper``` ! <span style="color:grey"> this is needed to allocate better the whisper model btween GPU vRAM and RAM;</span><br> 
-- Added measures to improve GPU memory allocation; see ```get_answer(optimize_cuda=Ture)``` <span style="color:grey"> this is beta, I
- still need to integrate in a more built-in way with the rest of the scripts;</span>
-- Added OFFLINE toggle to run exclusively locally and avoid credit consumption <span style="color:grey"> this is beta, I still need to integrate in a more built-in way with the rest of the scripts;</span>
+## APRIL 25th 2023 UPDATE: Jarvis can surf
+By integrating LangChain into the project I am happy to bring some useful capabilities to Jarvis like accessing the web. Different LangChain Agents are now instructed to perform complex tasks like finding files, accessing the web, and extracting content from local resources...<br>
+ - **Offline tasks**: the experience is now fully handled by AI so you don't need to guide jarvis in the tasks anymore. Earlier: *'Jarvis, find a file'* triggered the ```find_file``` function and then you had to provide keywords; now you can just say *'How many files are talking about X? Make a summary of one of them...'* and the system makes an action plan to satisfy your requests using different functions. The best part is that the agent in charge of this can realize if a file is relevant to the question by opening it and questioning itself.<br>
+ - **Online tasks**: a different agent is instructed to surf the web searching for answers. These agents will answer a question like *'How s the weather like?'* or *'What is the latest news about stocks?'*<br>
+
+So to summarize: Jarvis is in charge of keeping the conversation ongoing at a higher level and decides to delegate to the agents if needed; the offline agent puts its hands on files and PC stuff; the online agent surfs the web. I found this separation of tasks to work better especially with the main objective being to chat. If you make a conversational agent with tools the result is that it will mostly look for the answer online or among files consuming credit and time.
+
 ---
 
 ## What you'll need:
@@ -36,8 +37,9 @@ Worked hard to bring a local, free, alternative to OpenAI GPT models since latel
  - An [OpenAI](https://openai.com) account and API key; (check FAQs below for the alternatives)
  - <i>[PicoVoice](https://picovoice.ai/platform/porcupine/) account and a free AccessKey; (optional) </i>
  - <i>[ElevenLabs](https://beta.elevenlabs.io/) account and free Api Key (optional)</i>;
+ - [langChain API keys](https://github.com/hwchase17/langchain/blob/master/docs/modules/agents/tools/getting_started.md) for web surfing (news, weather, serpapi, google-serp, google-search... they are all free)
  - [ffmpeg](https://ffmpeg.org/) ;
- - Python virtual environment (Python>=3.8 and <3.10);
+ - Python virtual environment (Python>=3.9 and <3.10);
  - <i> Some credit to spend on ChatGPT (you can get three months of free usage by signing up to OpenAI) (suggested)</i>;
  - CUDA version >= 11.2;
  - <i> An IBM Cloud account to exploit their cloud-based text-to-speech models ([tutorial](https://www.youtube.com/watch?v=A9_0OgW1LZU))(optional)</i>;
@@ -48,10 +50,9 @@ Worked hard to bring a local, free, alternative to OpenAI GPT models since latel
 
 > you can rely on the new ```setup.bat``` that will do most of the things for you.
 
-> Alternatively, You can follow a [YT video](https://www.youtube.com/watch?v=AcCG7DOwhG8&t=1s) I made to guide you through the installation, but remember it's getting obsolete quickly so mind this README for specifications like the Python version (3.8 instead of 3.7). <br>
 
 ## GitHub overview
-**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API Inside the demos folder you'll find some guidance for the packages used in the project, if you have errors you might check these files first to target the problem. Mostly is stored in the Assistant folder: `get_audio.py` stores all the functions to handle mic interactions, `tools.py` implements some basic aspects of the Virtual Assistant, `voice.py` describes a (very) rough Voice class <br> The remaining scripts are supplementary to the voice generation and should not be edited.
+**MAIN** script you should run: `openai_api_chatbot.py` if you want to use the latest version of the OpenAI API Inside the demos folder you'll find some guidance for the packages used in the project, if you have errors you might check these files first to target the problem. Mostly is stored in the Assistant folder: `get_audio.py` stores all the functions to handle mic interactions, `tools.py` implements some basic aspects of the Virtual Assistant, `voice.py` describes a (very) rough Voice class. ```Agents.py``` handle the LangChain part of the system (here you can add or remove tools from the toolkits of the agents)<br> The remaining scripts are supplementary to the voice generation and should not be edited. 
 
 # INSTALLATION TUTORIAL
 ## Automatic installation
@@ -95,7 +96,7 @@ The automatic installation will also run the Vicuna installation ([Vicuna Instal
 ## Step 3: Running (`openai_api_chatbot.py`):
 When running, you'll see much information being displayed. I'm constantly striving to improve the readability of the execution, the whole project is a huge beta, forgive slight variations from the screens below. Anyway, this is what happens in general terms when you hit 'run':
 - Preliminary initializations take place, you should hear a chime when the Assistant is ready;
-- When *awaiting for triggering words* is displayed you'll need to say `Jarvis` to summon the assistant. At this point, a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main#key-words) or when you stop making questions for more than 30 seconds (still unstable, needs to be improved) <br>
+- When *awaiting for triggering words* is displayed you'll need to say `Jarvis` to summon the assistant. At this point, a conversation will begin and you can speak in whatever language you want (if you followed step 2). The conversation will terminate when you 1) say a [stop word](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main#key-words) 2) say something with one word (like 'ok') 3) when you stop making questions for more than 30 seconds <br>
 <p align="center">
   <img src="https://user-images.githubusercontent.com/49094051/230505896-c8a2ff80-4265-41e4-a6d5-e9f56d156afa.PNG" /><br>
   <img src="https://user-images.githubusercontent.com/49094051/230506756-287a1d6b-9652-4c66-bea8-cd75380ab45b.PNG" /><br>
@@ -103,14 +104,14 @@ When running, you'll see much information being displayed. I'm constantly strivi
 
 - After the magic word is said, the word *listening...* should then appear. At this point, you can make your question. When you are done just wait (3 seconds) for the answer to be submitted;
 - The script will convert the recorded audio to text using Whisper;
-- The text will be analyzed and a decision will be made. If the Assistant believes you want to perform an action (like looking for a past conversation) the respective protocols will be initiated; 
-- Elsewise, the script will then expand the `chat_history` with your question it will send a request with the API and it will update the history as soon as it receives a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
+- The text will be analyzed and a decision will be made. If the Assistant believes it needs to take some action to respond (like looking for a past conversation) the langchain agents will make a plan and use their tool to answer.
+- Elsewise, the script will then expand the `chat_history` with your question, it will send a request with the API and it will update the history as soon as it receives a full answer from ChatGPT (this may take up to 5-10 seconds, consider explicitly asking for a short answer if you are in a hurry);
 - The `say()` function will perform voice duplication to speak with Jarvis/Someone's voice; if the argument is not in English, IBM Watson will send the response from one of their nice text-to-speech models. If everything fails, the functions will rely on pyttsx3 which is a fast yet not as cool alternative;
 <p align="center">
 
 </p>
 
-- When any of the stop keywords are said, the script will ask ChatGPT to give a title to the conversation and will save the chat in a .txt file with the format 'CurrentDate-Title.txt';
+- When any of the stop keywords are said, the script will ask ChatGPT to give a title to the conversation and will save the chat in a .txt file with the format 'CurrentDate_Title.txt';
 - The assistant will then go back to sleep;
 <p align="center">
  <img src='https://user-images.githubusercontent.com/49094051/227788180-b9da0957-a58b-4c1c-bc34-4a4c8a0e0957.PNG'/><br>
@@ -120,7 +121,7 @@ When running, you'll see much information being displayed. I'm constantly strivi
 
 # Keywords:
 - to stop or save the chat, just say 'THANKS' at some point;
-- To summon JARVIS voice just say 'HEY JARVIS' at some point;
+- To summon JARVIS voice just say 'JARVIS' at some point;
 
 <span style="color:grey">*not ideal I know but works for now*</span>
 
@@ -140,18 +141,20 @@ When running, you'll see much information being displayed. I'm constantly strivi
 - [x] [4  - 2023] International language support for voice commands (beta)
 - [x] [4  - 2023] Making a step-by-step tutorial 
 - [x] [4  - 2023] Move some processing locally to reduce credit consumption: [Vicuna: A new, powerful model based on LLaMa, and trained with GPT-4](https://www.youtube.com/watch?v=ByV5w1ES38A&ab_channel=TroubleChute);
+- [x] [4  - 2023] Integrate with Eleven Labs Voices for super expressive voices and outstanding voice cloning;
+- [x] [4  - 2023] Extending voice commands and *Actions* (make a better active assistant)
+- [x] [4  - 2023] Connect the system to the internet
 
 currently working on:
-- [ ] Integrate with [Auto-GPT](https://github.com/Torantulino/Auto-GPT) which seems to be great to gather material from the internet;
-- [ ] Improve overall code;
+- [ ] Connect with paper database
+- [ ] Extend doc processing tools
+- [ ] Find a free alternative for LangChain Agents
 
 following:
 - [ ] fixing chat length bug (when the chat is too long it can't be processed by ChatGPT 3.5 Turbo)
-- [ ] Integrate with Eleven Labs Voices for super expressive voices and outstanding voice cloning;
-- [ ] Extending voice commands and *Actions* (make a better active assistant)
-- [ ] expanding *Memory*  
-- [ ] Connect the system to the internet
-- [ ] Refine memory and capabilities
+- [ ] expanding *Memory* 
+- [ ] crash reports   
+- [ ] Refine capabilities
 <br>
 <br>
 

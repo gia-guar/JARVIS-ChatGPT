@@ -2,7 +2,7 @@
 
 echo Checking for Python installation...
 where python >nul 2>nul || (
-  echo Python not found. Please install Python 3.8 and add it to the system PATH.
+  echo Python not found. Please install Python 3.9 and add it to the system PATH.
   exit /b 1
 )
 

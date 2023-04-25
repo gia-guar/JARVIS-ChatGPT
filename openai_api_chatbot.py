@@ -27,19 +27,12 @@ from Assistant import get_audio as myaudio
 from Assistant.VirtualAssistant import VirtualAssistant
 from Assistant.tools import count_tokens
 
-
 print('DONE\n')
-
 
 ### MAIN
 if __name__=="__main__":
     print("### SETTING UP ENVIROMENT ###")
-    OFFLINE = True
-    SOUND_DIR = os.path.join('sounds')
-    
-    print('loading whisper model...')
-
-    print('opening pygame:')
+    OFFLINE = False
     pygame.mixer.init()
     
     # INITIATE JARVIS
@@ -54,7 +47,6 @@ if __name__=="__main__":
         whisper_size = 'medium',
         awake_with_keywords=["jarvis"],
         model= "gpt-3.5-turbo",
-        offline_model= 'anon8231489123_vicuna-13b-GPTQ-4bit-128g', # Runs on GPU (lots of space required)
         embed_model= "text-embedding-ada-002",
         RESPONSE_TIME = 3,
         SLEEP_DELAY = 30,
@@ -75,10 +67,10 @@ if __name__=="__main__":
         
 
         if jarvis.is_awake:
-            question, detected_language = myaudio.whisper_wav_to_text('output.wav', jarvis.interpreter, prior=jarvis.languages.keys())
+            prompt, detected_language = myaudio.whisper_wav_to_text('output.wav', jarvis.interpreter, prior=jarvis.languages.keys())
 
             # check exit command
-            if "THANKS" in question.upper() or len(question.split())<=1:
+            if "THANKS" in prompt.upper() or len(prompt.split())<=1:
                 jarvis.go_to_sleep()
                 continue
             
@@ -87,24 +79,26 @@ if __name__=="__main__":
             else:
                 VoiceIdx = detected_language
             
+            jarvis.expand_conversation(role="user", content=prompt)
+
             # PROMPT MANAGING [BETA]
-            jarvis.expand_conversation(role="user", content=question)
+            flag = jarvis.analyze_prompt(prompt)
 
-            flag = "2" 
-            if not(OFFLINE):
-                flag = jarvis.analyze_prompt()
-
-            try:
-                print('(thought): ', flag)
-            except: pass
-            if "1" in flag or "find a file" in flag:
-                summary = jarvis.find_file()
-                print(summary)
-                continue
+            # redirect the conversation to an action manager or to the LLM
+            if "1" in flag or "tool" in flag:
+                print('(though): action')
+                response = jarvis.use_tools(prompt)
+                response = response
             
-            # count tokens to satisfy the max limits
-            # <to do>
-            response = jarvis.get_answer(question, update=False, mode='offline'if OFFLINE else 'online')
-            jarvis.say(response, VoiceIdx=VoiceIdx, IBM=True)
+            elif "2" in flag or "respond" in flag:
+                print('(though): response')
+                response = jarvis.get_answer(prompt)
+            
+            else:
+                print('(though): internet')
+                response = jarvis.web_surf(prompt)
+
+            jarvis.expand_conversation(role='assistant', content=response)
+            jarvis.say(response, VoiceIdx=VoiceIdx)
 
             print('\n')

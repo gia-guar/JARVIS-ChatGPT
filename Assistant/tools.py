@@ -1,19 +1,58 @@
+# imports for Local Search Engine
 import openai
 import os
 import pandas as pd
 import numpy as np
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 from tqdm import tqdm
+import ast
 
+# import for Translator
 import regex as re
 import langid
 from textblob import TextBlob
-import translators as ts
+try: import translators as ts
+except: print('could not import translators package')
 import argostranslate.package
 import argostranslate.translate
 
 import math
 import time 
+import collections
+
+"""
+AssistantChat: dictionary on steroids.
+"""
+class AssistantChat(collections.MutableSequence):
+    def __init__(self, begin:list, *args):
+        self.body = begin
+        self.filename= None
+        self.extend(list(args))
+    
+    def is_saved(self):
+        return True if self.filename != None else False
+    
+    def insert(self, i, v):
+        self.body.insert(i, v)
+
+    def append(self, item):
+        self.body.append(item)
+
+    def __call__(self):
+        return self.body
+
+    def __len__(self): return len(self.body)
+
+    def __getitem__(self, i): return self.body[i]
+
+    def __delitem__(self, i): del self.body[i]
+
+    def __setitem__(self, i, v):
+        self.body[i] = v
+
+    def __str__(self):
+        return str(self.body)
+
 
 """
 Translator: 
@@ -27,6 +66,7 @@ options:
  - translators 5.6.3 lib: online, excellent, long lags might occcur
  - [default] argostranslator: fast,  offline 
 """
+
 class Translator:
     def __init__(self, model="argostranslator", **kwargs):
         POSSIBLE_MODELS = ['argostranslator','gpt-3.5-turbo', 'translators']
@@ -37,20 +77,25 @@ class Translator:
                     "content": "You are a translator. You recieve text and target language as inputs and translate the text to the target language"}]
         self.body = None
         self.model = model
+        langs = kwargs['translator_languages']
+        self.languages = langs
 
         # Download and install Argos Translate packages
         argostranslate.package.update_package_index()
         available_packages = argostranslate.package.get_available_packages()
-        langs = kwargs['translator_languages']
+        
+        langid.set_languages(langs)
+
         for i in range(len(langs)):
             for j in range(len(langs)):
                 if langs[i]==langs[j]: continue
-                print(f'downloading/verifying Argos Translate Language package from {langs[i]} to {langs[j]}...')
+                
                 package_to_install = next(
                     filter(
                         lambda x: x.from_code == langs[i] and x.to_code == langs[j], available_packages
                     )
                 )
+                print(f'downloading Argos Translate Language packages...')
                 argostranslate.package.install_from_path(package_to_install.download())
         
 
@@ -76,11 +121,22 @@ class Translator:
             return API_response['choices'][0]['message']['content']
         
         if self.model=='translators':
-            res = ts.translate_text(input, translator='google', to_language=to_language, from_language=from_language)
+            try:
+                res = ts.translate_text(input, translator='google', to_language=to_language, from_language=from_language)
+            except:
+                res = input
+                self.model = 'argostranslator'
+                print('translation using translators switching to argostranslate')
+                
             return res
         
         if self.model == 'argostranslator':
-            res = argostranslate.translate.translate(input, from_code=from_language, to_code=to_language)
+            try:
+                res = argostranslate.translate.translate(input, from_code=from_language, to_code=to_language)
+            except:
+                print(f"translation using argostranslate from: {from_language} - to -> {to_language} Failed")
+                print(input)
+                res= input
             return res
 
     
@@ -113,8 +169,12 @@ class LocalSearchEngine:
         self.irrelevancy_threshold = irrelevancy_th
     
     def compute_similarity(self, key, text):
-        key_embedding = openai.Embedding.create(input=key, engine=self.embed_model)['data'][0]['embedding']
-        query_embedding = openai.Embedding.create(input=text, engine=self.embed_model)['data'][0]['embedding']
+        if type(key)==str:  key_embedding = self.compute_embeds(key)
+        else: key_embedding = key
+        
+        if type(text)==str: query_embedding =self.compute_embeds(text)
+        else: query_embedding = text
+
         similarity = cosine_similarity(key_embedding, query_embedding)
         return similarity
     
@@ -123,6 +183,11 @@ class LocalSearchEngine:
         if path is None:
             path = self.default_dir
 
+        print('\n')
+        if 'DATAFRAME.csv' not in os.listdir(path):
+            print('> > DATAFRAME.csv not detected building a new one')
+            pd.DataFrame({'file_names':['DATAFRAME.csv'], 'similarity':[0],"tags":[None]}).to_csv(os.path.join(path, 'DATAFRAME.csv'))
+
         if isinstance(key, list) or isinstance(key, tuple):
             key = " ".join(key)
         
@@ -130,30 +195,50 @@ class LocalSearchEngine:
         if from_csv:
             DataFrame = pd.read_csv(os.path.join(path,'DATAFRAME.csv'))
             fnames = DataFrame["file_names"]
-            tags = DataFrame['tags']
+            tags = DataFrame["tags"]
+            embeds = DataFrame["embeddings"]
 
             if len(fnames)!=len(os.listdir(path)):
                 print('> dataset not updated. Updating it now...')
-                self.produce_folder_tags()
+                
+                self.produce_folder_tags() ### I should add a parameter to specify HugginFaceHub (free) embeddings or OpenAI ones ($)
         
         print('> Analyzing DataFrame:')
 
         results = []
         topics = []
+        
+        key_embed = {}
+        for lang in self.translate_engine.languages:
+            transl_key = self.translate_engine.translate(input=key, to_language=langid.classify(lang)[0], from_language=langid.classify(key)[0])
+            print(f'> > computing key embedding in {lang} language')
+            key_embed[lang]= self.compute_embeds(transl_key)
 
         for i in tqdm(range(len(fnames))):
             if not(fnames[i].endswith('.txt')):
                 results.append(0)
                 topics.append('None')
                 continue
-
+            
+            # extract tags associated to the file
             file_tags = tags[i]
             topics.append(file_tags)
 
-            if langid.classify(file_tags)[0] != langid.classify(key)[0]:
-                file_tags = self.translate_engine.translate(input=file_tags, to_language=langid.classify(key)[0])
+            # extract and parse the saved embeddings
+            file_embeds = ast.literal_eval( embeds[i] ) # from "[a, b, c,]" to [a, b, c]
 
-            relevance = self.compute_similarity(file_tags, key)
+            # take the key embedding from the same language (more accurate) 
+            key_embedding = key_embed[langid.classify(file_tags)[0]]
+            
+            done=False
+            while not(done):
+                try:
+                    relevance = self.compute_similarity(file_embeds, key_embedding)
+                    done=True
+
+                except Exception as e:
+                    print(e)
+
             results.append(relevance)
 
         if n==-1: n=len(fnames)
@@ -163,44 +248,6 @@ class LocalSearchEngine:
 
         return df.head(n)
 
-    
-
-    def quick_search(self, key, path=None, model="text-davinci-003", temp = 0, n=-1):    
-        if path is None:
-            path = self.default_dir
-        
-        fnames = os.listdir(path)
-        results = []
-
-        for filename in fnames:
-            if not(filename.endswith('txt')):
-                results.append(None)
-                continue
-
-            f = open(os.path.join(path,filename), 'r')
-            text = f.read()
-            if count_tokens(text)>4096:
-                # keep 2000 words only
-                text = " ".join(text.split()[0:2000])
-
-            prompt=(f"is the following text related with {key}? Text:{text}.\nanswer yes or no.")
-            completions = openai.Completion.create(
-                engine=model,
-                prompt=prompt,
-                max_tokens=1024,
-                temperature=temp)
-            
-            if 'yes' in completions.choices[0].text.upper():
-                results.append(True)
-            else:
-                results.append(False)
-        
-        df = pd.DataFrame({'file_names':fnames, 'similarity':results})
-        df = df.sort_values(by='similarity', ascending=False)
-        
-        if n==-1: n=len(fnames)
-        return df
-    
 
     def produce_folder_tags(self, path=None):
         if path is None:
@@ -296,6 +343,7 @@ class LocalSearchEngine:
             output = "".join(output[1:])
         return output
 
+    # ADD Free alternative (Huggingface Embeds)
     def compute_embeds(self, words):
         return openai.Embedding.create(input=words, engine=self.embed_model)['data'][0]['embedding']
 
@@ -307,6 +355,7 @@ class LocalSearchEngine:
         response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     temperature=0,
+                    max_tokens=100,
                     messages=CHAT)
         
         return response['choices'][0]['message']['content']
@@ -323,7 +372,9 @@ class OnlineSearchEngine:
     # work in progress
     pass
 
-
+"""
+MISCELLANEOUS FUNCTIONS
+"""
 def count_tokens(vCountTokenStr):
     # Tokenize the input string
     blob = TextBlob(vCountTokenStr)
@@ -332,3 +383,31 @@ def count_tokens(vCountTokenStr):
     # Count the number of tokens
     num_tokens = len(tokens)
     return num_tokens
+
+
+def parse_conversation(string_chat):
+    split1_chat = string_chat.split('user:')
+
+    rebuilt = []
+
+    for item in split1_chat:
+        if 'system:' in item:
+            rebuilt.append({"role":"system", "content":f"{item.split('ststem:')[-1]}"})
+        if 'assistant:' in item:
+            spl_item = item.split("assistant:")
+            rebuilt.append({"role":"user", "content":f"{spl_item.pop(0)}"})
+            
+            while len(spl_item)>=1:
+                rebuilt.append({"role":"assistant", "content":f"{spl_item.pop(0)}"})
+    
+    return rebuilt
+
+def take_last_k_interactions(chat, max_tokens=4000):
+    n_tokens = 0
+    interactions = []
+
+    for item in chat:
+        n_tokens += count_tokens(item['content'])
+        if n_tokens>= max_tokens:
+            return interactions
+        interactions.append(item)

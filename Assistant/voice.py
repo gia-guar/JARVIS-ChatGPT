@@ -12,7 +12,7 @@ import io
 import sys
 
 class Voice:
-    def __init__(self, **kwargs):   
+    def __init__(self, languages, **kwargs):   
         # IBM CLOUD
         try:
             print('Authorizing IBM Cloud:')
@@ -33,12 +33,15 @@ class Voice:
             print('IBM authentication failed')
 
         if 'elevenlabs_api' in list(kwargs.keys()):
-            eleven_labs_user = elevenlabslib.ElevenLabsUser(kwargs['elevenlabs_api'])
-            
-            if 'elevenlabs_voice' in list(kwargs.keys()):
-                if kwargs['elevenlabs_voice'] in (voice.initialName for voice in eleven_labs_user.get_all_voices()):
-                    self.elevenlabs_voice = eleven_labs_user.get_voices_by_name(kwargs['elevenlabs_voice'])[0]
+            try:
+                eleven_labs_user = elevenlabslib.ElevenLabsUser(kwargs['elevenlabs_api'])
+                
+                if 'elevenlabs_voice' in list(kwargs.keys()):
+                    if kwargs['elevenlabs_voice'] in (voice.initialName for voice in eleven_labs_user.get_all_voices()):
+                        self.elevenlabs_voice = eleven_labs_user.get_voices_by_name(kwargs['elevenlabs_voice'])[0]
 
+            except:
+                print('Couldn t connect with Elevenlabs')
             # <to do: initiate Jarvis cloned voice if available and disable TTS>
 
         # PYTTSX3 for backup plan
@@ -47,9 +50,11 @@ class Voice:
         # SYNTHETIC VOICES
         # CoquiAI -  coqui-ai/TTS (https://github.com/coqui-ai/tts)
         synth = TTS(model_name=os.path.join("tts_models/multilingual/multi-dataset/your_tts"), progress_bar=False, gpu=True)  
-
+        
+        self.languages = languages
         self.write_dir = kwargs['write_dir']
         self.path = kwargs['voice_id']
+        print('cloning voice form: ',self.path)
         self.synthetic_voice = synth
         self.offline = engine
 
@@ -105,7 +110,7 @@ class Voice:
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play()
         while(pygame.mixer.music.get_busy()): pass
-        pygame.mixer.music.load(os.path.join(self.write_dir,'empty.mp3'))
+        return
 
 
 

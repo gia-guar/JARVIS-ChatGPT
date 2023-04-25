@@ -1,3 +1,10 @@
+# import for prompt routing
+from langchain import OpenAI
+from langchain.agents import Tool
+from langchain.agents import initialize_agent
+from .Agents import generateReactAgent, generateGoogleAgent
+
+
 # imports for chats
 import  pygame
 import os
@@ -13,7 +20,8 @@ import torch
 
 import Assistant.get_audio as myaudio
 from .voice import *
-from .tools import Translator, LocalSearchEngine
+from .tools import Translator, LocalSearchEngine, AssistantChat
+from .tools import parse_conversation, count_tokens, take_last_k_interactions
 from .webui import oobabooga_textgen
 
 # imports for audio
@@ -29,13 +37,15 @@ from contextlib import contextmanager
 import webrtcvad
       
 class VirtualAssistant:
-    DEFAULT_CHAT =  [{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}]
+    DEBUG = False
+    DEFAULT_CHAT =  AssistantChat([{"role": "system", "content": "You are a helpful assistant. You can make question to make the conversation entertaining."}])
     RESPONSE_TIME = 1.5 #values that work well in my environment (ticks, not seconds)
     SLEEP_DELAY = 3 #seconds 
     MIN_RECORDING_TIME = .5 #seconds
     MAX_RECORDING_TIME = 60 #seconds
     VAD_AGGRESSIVENESS = 2 #1-3
-    
+
+    MAX_TOKENS = 4096
 
     DEVICE_INDEX = myaudio.detect_microphones()[0]
     CHUNK = 1024
@@ -51,7 +61,6 @@ class VirtualAssistant:
                  whisper_model=None, 
                  awake_with_keywords = ['elephant'],
                  model = "gpt-3.5-turbo",
-                 offline_model = None,
                  embed_model = "text-embedding-ada-002",
                  translator_model = 'argostranslator',
                  **kwargs):
@@ -60,6 +69,7 @@ class VirtualAssistant:
         except:
             print('OpenAI API key not found')
         
+        # HEAVY STUFF FIRTS
         # Filling the GPU with the model
         if whisper_model == None:
             if 'whisper_size' not in kwargs: raise Exception('whisper model needs to be specified')
@@ -67,24 +77,18 @@ class VirtualAssistant:
         else:
             self.interpreter = whisper_model
 
-        # STATUS
+        # STATUS and PROMPT ANALYZER
         self.DIRECTORIES={
             'CHAT_DIR': os.path.realpath(os.path.join(os.getcwd(), 'saved_chats')),
             'SOUND_DIR':os.path.realpath(os.path.join(os.getcwd(), 'Assistant', 'sounds')),
             'VOICE_DIR':os.path.realpath(os.path.join(os.getcwd(), 'Assistant', 'voices'))
         }
 
-        self.functions=[
-            'find a file: file can store past conversations, textual information',
-            'respond: provide an answer to a question',
-            'adjust settings',
-            'find a directory inside the Computer',
-            'save this conversation for the future',
-            'start a new conversation and delete the current one',
-            'check on internet',
-            'None of the above',
+        self.functions_descript=[
+            "tools: the prompt requires an action like handling a file, saving a conversation, changing parameters...",
+            "respond: provide an answer to a question",
+            "you don't know the answer or you can't satisfy the request. you need real-time weather information",
         ]
-        
 
         # TEXT and VOICE
         if 'voice_id' in kwargs.keys():
@@ -98,13 +102,13 @@ class VirtualAssistant:
             # add yours
         }
 
-        self.voice = Voice(write_dir = self.DIRECTORIES['SOUND_DIR'], **kwargs)
+        self.voice = Voice(write_dir = self.DIRECTORIES['SOUND_DIR'], languages = self.languages, **kwargs)
         self.translator = Translator(model=translator_model, translator_languages = list(self.languages.keys()))
         self.answer_engine = model
-        self.offline_answer_engine = offline_model
+
         self.search_engine = LocalSearchEngine(
             embed_model = embed_model, 
-            tldr_model = model,
+            tldr_model = kwargs['search_engine_llm'] if 'search_engine_llm' in list(kwargs.keys()) else model,
             translator_model=translator_model,
             translator_languages = list(self.languages.keys()))
         
@@ -112,7 +116,7 @@ class VirtualAssistant:
         self.current_conversation = self.DEFAULT_CHAT
 
         # AUDIO 
-        #initialize the VAD module
+        # initialize the VAD module
         self.vad = webrtcvad.Vad()
         self.vad.set_mode(self.VAD_AGGRESSIVENESS) 
         
@@ -128,10 +132,16 @@ class VirtualAssistant:
         self.play('system_online_bleep.mp3')
     
     # STATUS ###############################################################################################
-
-    def set_params(**kwargs):
-        for key in kwargs:   
-            exec("self.%s = %d" % (key,kwargs[key]))
+    
+    def use_tools(self, prompt, debug = DEBUG):
+        if debug: print(' -use tools ')
+        ActionManager = generateReactAgent(self, k=1)
+        return ActionManager.run(input = prompt)
+    
+    def web_surf(self, prompt, debug = DEBUG):
+        if debug: print(' - web surfing ')
+        WebSurfingAgent = generateGoogleAgent(self, k=1)
+        return WebSurfingAgent.run(input=prompt)
 
     def set_directories(self, **kwargs):
         for item in kwargs:
@@ -148,31 +158,44 @@ class VirtualAssistant:
     def go_to_sleep(self):
         print('[Assistant going to sleep]')
         self.is_awake = False
-        if len(self.current_conversation) > self.CONVERSATION_LONG_ENOUGH:
+        if len(self.current_conversation()) > self.CONVERSATION_LONG_ENOUGH:
             self.save_chat()
 
         self.play('sleep.mp3', PlayAndWait=True)
 
-    def analyze_prompt(self):
-        context ="""You are a prompt manager. A number must always be present in your answer. You have access to a suite of actions and decide which associated number is required. Your actions:"""
-        for i, function in enumerate(self.functions):
-            context += f"\n{i+1} - {function};"
+    # [stable]
+    def analyze_prompt(self, prompt, debug = DEBUG):
+        if debug: print(' - analyzing prompt ')
+        context ="""You are a prompt manager. A number must always be present in your answer. You can perform some actions and decide which associated number is required. Your actions:"""
+        for i, function in enumerate(self.functions_descript):
+            context += f"\n{i+1}) {function};"
         context += "\nYou can answer only with numbers. A number must always be present in your answer."
-        context += "\nHere is an example: PROMPT: 'find a conversation'\n 1\nPROMPT:'do you agree?'\n2\nPROMPT: 'Salva questa conversazione'\n5"
+        context += """\nHere are some example:
+        \nPROMPT: 'find and summarize all the files about history'\n1
+        \nPROMPT: 'find a past conversation about planes'\n1
+        \nPROMPT: 'do you agree?'\n2
+        \nPROMPT: 'Salva questa conversazione'\n1
+        \nPROMPT: 'How is the weather?'\n3
+        \nPROMPT: 'credo sia giusto.'\n2
+        \nPROMPT: '¿Cuál es la noticia de hoy?'\n3
+        \nPROMPT: 'Thank you'\n2"""
 
         CHAT = [{"role": "system", "content": context},
-                {"role": "user", "content":f"PROMPT: '{self.current_conversation[-1]['content']}'"}]
+                {"role": "user", "content":f"PROMPT: '{prompt}'"}]
 
-        response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    temperature=0,
-                    max_tokens=10,
-                    messages=CHAT)
+        flag = identify_explicit_command(prompt, self.translator)
+
         
-        return response['choices'][0]['message']['content']
-
-
-
+        if flag is None:
+            if debug: print(' - - submitting request')
+            response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        temperature=0,
+                        max_tokens=10,
+                        messages=CHAT)
+            flag = response['choices'][0]['message']['content']
+            if debug: print(' - - got answer')
+        return flag
 
     # CONVERSATION ################################################################################
 
@@ -183,66 +206,86 @@ class VirtualAssistant:
 
     def expand_conversation(self, role, content): self.current_conversation.append({"role":role, "content":content})
 
-    def get_answer(self, question, update=False, mode='online', optimize_cuda = False):
-        if update==True:
-            self.expand_conversation(role="user", content=question)
-            temp = self.current_conversation
-        else:
-            temp = copy.deepcopy(self.current_conversation)
-            temp.append({"role":"user", "content":question})
+    def get_answer(self, question, optimize_cuda = False, debug=DEBUG):
+        if debug: print(' - thinking')
+        temp = copy.deepcopy(self.current_conversation())
+        temp.append({"role":"user", "content":question})
 
         self.play('thinking.mp3', loop=True)
 
-        if mode=='online':
+        if self.answer_engine == 'gpt-3.5-turbo':
+            if debug: print(' - - submitting request')
             API_response = openai.ChatCompletion.create(
                 model=self.answer_engine,
                 messages=temp)
             answer = API_response['choices'][0]['message']['content']
-        elif mode=='offline':
-            if self.offline_answer_engine == 'anon8231489123_vicuna-13b-GPTQ-4bit-128g':
-                lang_id = langid.classify(question)[0]
-                if optimize_cuda:
-                    # free space on the GPU
-                    self.switch_whisper_device()
-                # use GPU to process the answer
-                answer = oobabooga_textgen(prompt = temp)
-                answer = self.translator.translate(answer, from_language=langid.classify(answer)[0], to_language=lang_id)
-                if optimize_cuda:
-                    # try to get the model back to GPU
-                    self.switch_whisper_device()
-            elif self.offline_answer_engine == 'eachadea_ggml-vicuna-13b-4bit':
-                answer = oobabooga_textgen(prompt = question)
-                
+            if debug: print(' - - got answer')
+            
+        
+        elif self.answer_engine == 'anon8231489123_vicuna-13b-GPTQ-4bit-128g':
+            lang_id = langid.classify(question)[0]
+            if optimize_cuda:
+                # free space on the GPU
+                self.deallocate_whisper()
+            # use GPU to process the answer
+            answer = oobabooga_textgen(prompt = temp)
+            answer = self.translator.translate(answer, from_language=langid.classify(answer)[0], to_language=lang_id)
+            if optimize_cuda:
+                # try to get the model back to GPU
+                self.allocate_whisper()
+
+        elif self.answer_engine == 'eachadea_ggml-vicuna-13b-4bit':
+            answer = oobabooga_textgen(prompt = question)
+        pygame.mixer.stop()
+
         self.expand_conversation(role="assistant", content=answer)
 
         self.last_interaction = time.perf_counter()
-        pygame.mixer.music.stop()
-
+        if debug: print(' - - finished')
         return answer
 
-
-    def save_chat(self):
+    def save_chat(self, debug = DEBUG):
+        if debug: print(' - saving chat')
         if not os.path.isdir(self.DIRECTORIES['CHAT_DIR']): os.mkdir(self.DIRECTORIES['CHAT_DIR'])
-        
-        title = self.get_answer(question="generate a very short title for this conversation", update=False)
-        self.say(f'I am saving this conversation with title: {title}', VoiceIdx='en', mode='offline')
 
-        self.play('data_writing.mp3', PlayAndWait=True)
+        if not self.current_conversation.is_saved(): 
+            if debug: print(' - - generating title')
+            title = self.get_answer(question="generate a very short title for this conversation")
+            self.say(f'I am saving this conversation with title: {title}', VoiceIdx='en', IBM=False, elevenlabs=True)
 
-        title = title.replace(' ','_')
-        title = ''.join(e for e in title if e.isalnum())
+            self.play('data_writing.mp3', PlayAndWait=True)
+            
+            prompt =  [{"role": "system", "content": "You don't like redundancy and use as few words as possible"},
+                {"role":"user", "content":f"Associate a tag to this title: {title} \nHere is an example: 'Exploring Text to Speech Popular Techniques and Deep Learning Approaches' is associated to 'Deep Learning'"}]
+            
+            if debug: print(' - - submitting request')
+            API_response = openai.ChatCompletion.create(
+                        model='gpt-3.5-turbo',
+                        max_tokens=5,
+                        temperature=0,
+                        messages=prompt)
+            if debug: print(' - - got answer')
+            if debug: print(' - - processing response')
+            answer = API_response['choices'][0]['message']['content']
+            answer = re.sub(r'[^\w\s]', '',answer)
+            answer = re.sub(' ', '',answer)
+            fname = str( str(datetime.today().strftime('%Y-%m-%d')) + '_' + str(answer)+'.txt')
+            self.current_conversation.filename = fname
+        else:
+            self.say(f'I am overwriting the conversation {fname}', VoiceIdx='en', IBM=False, elevenlabs=True)
+            fname = self.current_conversation.filename
 
-        fname = str( str(datetime.today().strftime('%Y-%m-%d')) + '_' + str(title)+'.txt')
         with open(os.path.join(self.DIRECTORIES['CHAT_DIR'], fname), 'w') as f:
-            for message in self.current_conversation:
+            for message in self.current_conversation():
                 f.write(message["role"]+ ': ' + message["content"]+'\n')
             f.close()
+        
+        self.is_awake = False
+        return f"file: {os.path.join(self.DIRECTORIES['CHAT_DIR'], fname)} saved successfully"
 
-    def load_conversation(self, filepath):
-        # to be implemented
-        return #conversation in json format 
 
     # ACTIONS ##################################################################################
+    
     def deallocate_whisper(self):
         model_name = self.interpreter.name
         model_current_device = self.interpreter.device
@@ -258,8 +301,8 @@ class VirtualAssistant:
     def allocate_whisper(self):
         model_name = self.interpreter.name
         model_current_device = self.interpreter.device
-
         self.interpreter = None
+
         torch.cuda.empty_cache()
         if model_current_device.type == 'cpu':
             try:
@@ -267,6 +310,7 @@ class VirtualAssistant:
                 print('loading Whisper model to CUDA')
                 self.interpreter = whisper.load_model(model_name, device='cuda')
             except:
+                self.interpreter = None
                 print(f"cuda dedicated memory isufficient: {torch.cuda.memory_allocated()/1e6} GB already occupuied")
                 print(f"keeping Whisper model to cpu")
                 self.interpreter = whisper.load_model(model_name, device='cpu')
@@ -294,85 +338,43 @@ class VirtualAssistant:
                 self.interpreter = whisper.load_model(model_name, device='cpu')
                 torch.cuda.empty_cache()
     
+    def open_file(self, filename, debug=DEBUG):
+        if debug: print(' - opening file')
+        # look for the file
+        file = None
+        for fname in os.listdir(self.DIRECTORIES['CHAT_DIR']):
+            
+            # look for sub-strings (in case extension is forgotten)
+            if filename in fname:
+                file = open(os.path.join(self.DIRECTORIES['CHAT_DIR'], filename), 'r')
+                file = file.read()
 
-    def confirm_choice(self, confirm_question, lang_id=None):
-        prompt = self.current_conversation[-1]["content"]
-        if lang_id is None: lang_id = langid.classify(prompt)[0]
+        if file is None: return 'No such file'
 
-        confirm_question = self.translator.translate(confirm_question, from_language = 'en', to_language = lang_id)       
+        return file  
+   
 
-        self.say(confirm_question, VoiceIdx=lang_id)
-        self.record_to_file('output.wav')
-        response, lang_id = myaudio.whisper_wav_to_text('output.wav',self.interpreter, prior=self.languages)
-        
-        if any(word in self.translator.translate(response, from_language=lang_id, to_language='en').lower() for word in ['yes','yeah','go ahead','continue','proceed']):
-            return True
+    def find_file(self, keywords, n=3, debug=DEBUG):
+        if debug: print(' -finding file')
+        #self.play('thinking.mp3', loop=True)
+        summary = self.search_engine.accurate_search(key=keywords, from_csv=True, n=n)
+        # self.play('wake.mp3')
 
-        print(self.translator.translate(response, from_language=lang_id, to_language='en').lower().split())
-        return False
-        
-
-    def find_file(self, debug = False):
-        prompt = self.current_conversation[-1]["content"]
-        lang_id = langid.classify(prompt)[0]
-
-        if debug: print(prompt, lang_id)
-
-        # confirm choice first:
-        confirm_question = "I am about to begin a search, should I proceed?"
-        if not(self.confirm_choice(confirm_question, lang_id=lang_id)):
-            self.play('aborting.mp3')
-            return -1
-        
-        # provide keywords:
-        provide_tag_question = "Provide the argument of the search"
-        provide_tag_question = self.translator.translate(provide_tag_question, from_language='en', to_language=lang_id)
-        self.say(provide_tag_question, VoiceIdx=lang_id)
-        self.record_to_file('output.wav')
-        response, _ = myaudio.whisper_wav_to_text('output.wav',self.interpreter, prior=self.languages)
-        self.expand_conversation(role="assistant", content=provide_tag_question)
-        self.expand_conversation(role="user", content=response)
-
-        if len(response)<5:
-            # return to main if silence
-            return
-        
-        keywords = re.sub('[^0-9a-zA-Z]+', ' ', response)
-        keywords = keywords.split()
-
-        self.play('thinking.mp3', loop=True)
-        summary = self.search_engine.accurate_search(key=keywords, from_csv=True)
-        self.play('wake.mp3')
-
-        text  = self.translator.translate("Research completed:", lang_id)
-        text += '\n'+f'In the most relevant conversation the following topic were discussed:'
-        text  = self.translator.translate(text, from_language = 'en', to_language = lang_id)
-        text += f'{self.translator.translate(summary.tags[0], to_language=lang_id)}'
-
-        text += f"\n{self.translator.translate(input='here is a short summary of the conversation', to_language=lang_id)}: "
-
-        file = open(os.path.join(self.DIRECTORIES['CHAT_DIR'],summary.file_names[0]), 'r')
-        conversation = file.read()
-        text += '\n'+self.search_engine.tldr(text=conversation, to_language=self.languages[lang_id])
-        self.say(text,VoiceIdx=lang_id)
-        print("\n")
-        
-        self.expand_conversation(role="assistant", content=text)
-
-        # work in progress: asking to actually load the conversation 
-        # work in progress: making recovering the last conversation more straightfoward
-        return summary
+        response = ''
+        for i in range(n):
+            response += f"\nFilename: {summary.file_names[i]} ; Topics discussed: {summary.tags[i]}" 
+        return response
 
 
 
 
     # SPEAK ####################################################################################
-    def play(self, fname, PlayAndWait=False, loop=False):
+    def play(self, fname, PlayAndWait=False, loop=False, debug = DEBUG):
         if loop: loop=-1
         else: loop = 0
 
         if pygame.mixer.get_init() is None: pygame.mixer.init()
-
+        if debug: print(' - playing')
         try:
             pygame.mixer.music.load(os.path.join(self.DIRECTORIES["SOUND_DIR"], fname))
         except Exception as e:
@@ -383,6 +385,7 @@ class VirtualAssistant:
 
         if PlayAndWait:
             while(pygame.mixer.music.get_busy()):pass
+        if debug: print(' - -  finihed playing')
 
     def say(self, text, VoiceIdx='jarvis', elevenlabs=False, IBM=False):   
         print(f"[Assistant]: {text}")
@@ -401,7 +404,7 @@ class VirtualAssistant:
                 self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
                 return
         
-        if IBM:
+        elif IBM:
             try:
                 try: 
                     self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=True, mode='online')
@@ -413,9 +416,11 @@ class VirtualAssistant:
                 self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
                 return
         
-        try: 
+        try:
             self.voice.speak(text=text, VoiceIdx=VoiceIdx, elevenlabs=False, IBM=False, mode='offline')
-        except:
+        except Exception as e:
+            print(VoiceIdx, elevenlabs, IBM)
+            print(e)
             raise Exception('No such specifications')
 
 
@@ -587,3 +592,23 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
+
+def identify_explicit_command(prompt, translator):
+    prompt = translator.translate(prompt, to_language='en')
+    if len(prompt.split())>15: return flag
+    INTERNET_COMMANDS = [
+        "do an internet search",
+        "look on the web",
+        "do a web search",
+        "control on the internet",
+        "do a search",
+        "make a search",
+        "perform a search",
+        "perform a web search"]
+
+    flag = None
+    if any(command in prompt for command in INTERNET_COMMANDS):
+        flag = '3'
+    
+
+    return flag
