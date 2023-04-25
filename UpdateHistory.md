@@ -1,7 +1,20 @@
 # Update History
 ---
+## APRIL 25th 2023 UPDATE: Jarvis can surf
+By integrating LangChain into the project I am happy to bring some useful capabilities to Jarvis like accessing the web. Different LangChain Agents are now instructed to perform complex tasks like finding files, accessing the web, and extracting content from local resources...<br>
+ - **Offline tasks**: the experience is now fully handled by AI so you don't need to guide jarvis in the tasks anymore. Earlier: *'Jarvis, find a file'* triggered the ```find_file``` function and then you had to provide keywords; now you can just say *'How many files are talking about X? Make a summary of one of them...'* and the system makes an action plan to satisfy your requests using different functions. The best part is that the agent in charge of this can realize if a file is relevant to the question by opening it and questioning itself.<br>
+ - **Online tasks**: a different agent is instructed to surf the web searching for answers. These agents will answer a question like *'How s the weather like?'* or *'What is the latest news about stocks?'*<br>
+
+So to summarize: Jarvis is in charge of keeping the conversation ongoing at a higher level and decides to delegate to the agents if needed; the offline agent puts its hands on files and PC stuff; the online agent surfs the web. I found this separation of tasks to work better especially with the main objective being to chat. If you make a conversational agent with tools the result is that it will mostly look for the answer online or among files consuming credit and time. 
+<br>
+
+While this solution brings some stability to the conversation, it s not still ideal for processing scientific papers and the system does not produce any material yet. I am working on a sort of *project mode* that is focused on actions rather than chatting. Ideally I'd like jarvis to shift from *chat mode* to *project mode* when I'll be asking *"help me to understand topic X from the paper Y"* and then other similar papers should be downloaded, summarized and compared.
+
+---
+
+---
 ## APRIL 15th 2023 UPDATE: Vicuna Integration and offline modality
-Worked hard to bring a local, free, alternative to OpenAI GPT models since lately some open-source competition is arising. Vicuna is a free GPT model that is claimed to be 90% as good as ChatGPT4. My plan is to **integrate** this model with ChatGPT rather than straight-out substitute it. This is because OpenAI API is more reliable, faster and doesn't seem to suffer from hallucinations (i.e. when a conversational AI generates a response to a prompt that is either false or irrelevant to the original request). The installation of this model is one-click but, since the model is hardware-dependant, the response time will vary according to your hardware capabilities. I made a more [in-depth analysis](https://github.com/gianmarcoguarnier/JARVIS-ChatGPT/tree/main/Vicuna/README.md) on whether should you install it or just stick to OpenAI.<br>
+Worked hard to bring a local, free, alternative to OpenAI GPT models since lately some open-source competition is arising. Vicuna is a free GPT model that is claimed to be 90% as good as ChatGPT4. My plan is to **integrate** this model with ChatGPT rather than straight-out substitute it. This is because OpenAI API is more reliable, faster and doesn't seem to suffer from hallucinations (i.e. when a conversational AI generates a response to a prompt that is either false or irrelevant to the original request). The installation of this model is one-click but, since the model is hardware-dependant, the response time will vary according to your hardware capabilities. I made a more [in-depth analysis](https://github.com/gia-guar/JARVIS-ChatGPT/tree/main/Vicuna/README.md) on whether should you install it or just stick to OpenAI.<br>
 The gist comes down to how much vRAM and RAM you have. The oogabooga ui backed is pretty efficient in dynamically allocating the models.
 - ! Move the files from the ```whisper_edits``` folder to the ```.venv\lib\site-packages\whisper``` ! <span style="color:grey"> this is needed to allocate better the whisper model btween GPU vRAM and RAM;</span><br> 
 - Added measures to improve GPU memory allocation; see ```get_answer(optimize_cuda=Ture)``` <span style="color:grey"> this is beta, I
