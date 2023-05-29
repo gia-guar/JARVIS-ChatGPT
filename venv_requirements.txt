@@ -197,7 +197,7 @@ tensorflow==2.9.1
 tensorflow-addons==0.17.1
 tensorflow-datasets==4.6.0
 tensorflow-estimator==2.9.0
-tensorflow-gpu==2.9.1
+tensorflow-gpu==2.12.0
 tensorflow-hub==0.12.0
 tensorflow-io==0.26.0
 tensorflow-io-gcs-filesystem==0.26.0
