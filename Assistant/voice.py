@@ -10,6 +10,7 @@ import pygame
 from pydub import AudioSegment
 import io
 import sys
+import langid
 
 class Voice:
     def __init__(self, languages, **kwargs):   
@@ -32,12 +33,12 @@ class Voice:
         except:
             print('IBM authentication failed')
 
-        if 'elevenlabs_api' in list(kwargs.keys()):
+        if 'elevenlabs_api' in kwargs:
             try:
                 eleven_labs_user = elevenlabslib.ElevenLabsUser(kwargs['elevenlabs_api'])
                 
                 if 'elevenlabs_voice' in list(kwargs.keys()):
-                    if kwargs['elevenlabs_voice'] in (voice.initialName for voice in eleven_labs_user.get_all_voices()):
+                    if kwargs['elevenlabs_voice'] in (voice.initialName for voice in eleven_labs_user.get_all_voices()):             
                         self.elevenlabs_voice = eleven_labs_user.get_voices_by_name(kwargs['elevenlabs_voice'])[0]
 
             except:
@@ -54,14 +55,17 @@ class Voice:
         self.languages = languages
         self.write_dir = kwargs['write_dir']
         self.path = kwargs['voice_id']
-        print('cloning voice form: ',self.path)
+        print('cloning voice form:',self.path)
         self.synthetic_voice = synth
         self.offline = engine
 
 
 
 
-    def speak(self, text, VoiceIdx, mode, LangIdx='en', elevenlabs=False, IBM=False):    
+    def speak(self, text, VoiceIdx, mode, elevenlabs=False, IBM=False):
+        ## delete old last_aswer.wav to avoid conflicts
+        if os.path.exists((self.write_dir, "last_answer.wav")): os.remove((self.write_dir, "last_answer.wav"))
+
         ## generate the speech: last_answer.wav
         if mode == 'online':
             if  elevenlabs==True:
@@ -70,8 +74,8 @@ class Voice:
                         audio = self.elevenlabs_voice.generate_audio_bytes(text)
                         audio = AudioSegment.from_file(io.BytesIO(audio), format="mp3")
                         audio.export(os.path.join(self.write_dir, "last_answer.wav"), format="wav")
-                    except:
-                        print('Elevenlabs credit might have ended')
+                    except Exception as e:
+                        print(f'Elevenlabs credit might have ended. {e}')
                         raise Exception
 
                 if VoiceIdx == 'jarvis':
@@ -82,24 +86,27 @@ class Voice:
             elif IBM==True:
                 with open(os.path.join(self.write_dir, "last_answer.wav"),'wb') as audio_file:
                     try:
+                        if VoiceIdx=='jarvis':VoiceIdx='en'
                         res = self.tts_service.synthesize(text, accept='audio/wav', voice=get_ibm_voice_id(VoiceIdx)).get_result()
                         audio_file.write(res.content)
                     except:
                         print('(IBM credit might have ended)')
                         raise Exception
 
-        if mode == 'offline':
-            if VoiceIdx == 'jarvis':
-                if LangIdx == 'en':
-                    with suppress_stdout():
-                        self.synthetic_voice.tts_to_file(text=text, speaker_wav=self.path, language="en", file_path=os.path.join(self.write_dir, 'last_answer.wav'))
+        if mode == 'offline': 
+            if VoiceIdx == 'jarvis' and langid.classify(text)[0]=='en':
+                LangIdx = 'en'
+                print(self.path, LangIdx)
+                self.synthetic_voice.tts_to_file(text=text, speaker_wav=self.path[LangIdx], language=LangIdx, file_path=os.path.join(self.write_dir, 'last_answer.wav'))
+                
                 
                 """ Idea for multiple language Text-To-Speech: dictionaries
                 if VoiceIdx == 'other-language':
                     self.synthetic_voice['other-language'].tts_to_file(text=text, speaker_wav=self.path, language="en", file_path=os.path.join(self.DIRECTORIES['SOUND_DIR'], 'last_answer.wav'))
                 """
             else:
-                self.offline = self.change_offline_lang(lang_id=VoiceIdx)
+                LangIdx = langid.classify(text)[0]
+                self.offline = self.change_offline_lang(lang_id=LangIdx)
                 self.offline.say(text)
                 self.offline.runAndWait()
                 return
@@ -115,13 +122,16 @@ class Voice:
 
 
     def change_offline_lang(self, lang_id):
+        engine = pyttsx3.init()
         try:
             for voice in self.offline.getProperty('voices'):
                 if self.languages[lang_id] in voice.name:
-                    self.offline.setProperty('voice', voice.id)
-                    return self.offline
-        except Exception as e:      
-            print('error: ',e)
+                    engine.setProperty('voice', voice.id)
+                    return engine
+            return engine
+        except Exception as e:    
+            print('error while switching to lang: ',lang_id,e)
+            return engine 
 
 # know more at: https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices
 def get_ibm_voice_id(VoiceIdx):

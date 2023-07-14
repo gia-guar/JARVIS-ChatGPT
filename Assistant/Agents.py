@@ -3,6 +3,7 @@ from langchain.llms import OpenAI
 from langchain.agents import Tool, AgentExecutor, ZeroShotAgent
 from langchain.memory import ConversationBufferMemory 
 from langchain.agents import initialize_agent, load_tools
+import datetime
 
 from Assistant import VirtualAssistant
 import os
@@ -36,7 +37,7 @@ def generateReactAgent(VA:VirtualAssistant, k:int):
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, human_prefix='user', ai_prefix='assistant')
 
     # need to work on a custom LangChain llm model 
-    prefix = """Have a conversation. You will often use the tool Answer but you have also access to the following tools:"""
+    prefix = """You are an AI research assistant designed to assist users with their academic research. You are equipped with these tools:"""
     suffix = """Begin!"
 
     {chat_history}
@@ -98,7 +99,16 @@ def generateGoogleAgent(VA:VirtualAssistant, k:int):
         Tool(
             name='News',
             func=news,
-            description='Use this when you want to get information about the top headlines of current news stories. The input should be a keyword describing the topic')
+            description='Use this when you want to get information about the top headlines of current news stories. The input should be a keyword describing the topic'),
+        Tool(
+            name='Today',
+            func=today,
+            description='Useful to know the current day'),
+        Tool(
+            name='Delta days',
+            func= time_between_dates,
+            description='Use this you need to compute the time between two Dates. Input should be two dates in the ISO 8601 format: Year-Month-Day'
+        )
         ]
     
     for item in custom_tools: tools.append(item)
@@ -122,7 +132,7 @@ def generateGoogleAgent(VA:VirtualAssistant, k:int):
     # adding a window of memory:
     memory = build_memory(VA.current_conversation(), k)
     
-    return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory, early_stopping_method = 'generate', max_iterations=2)
+    return AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory, early_stopping_method = 'generate', max_iterations=4)
 
 
 
@@ -133,6 +143,18 @@ from newsapi import NewsApiClient
 def locate_me(p):
     g = geocoder.ip('me')
     return [g.city, g.state, g.country]
+
+def today(p):
+    return str(datetime.date.today())
+
+def time_between_dates(date1, date2):
+    try:
+        date1 = datetime.date.fromisoformat(date1)
+        date2 = datetime.date.fromisoformat(date2)
+    except:
+        return 'date format incorrect'
+    if date2.toordinal()>date1.toordinal(): return str(date2-date1)
+    else: return str(date1-date2) 
 
 def news(keyword):
     newsapi = NewsApiClient(api_key=os.getenv('NEWS_API_KEY'))

@@ -1,0 +1,4 @@
+system: You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words.
+user: Che colori hai il cielo? Blu o giallo?
+assistant: Il colore del cielo dipende dalle condizioni climatiche e dall'ora del giorno. Di solito, durante le ore diurne, il cielo appare di un bel colore blu, mentre al tramonto e all'alba può diventare gradatamente di un colore giallo-arancione. Tuttavia, questi colori possono variare anche in base alla posizione geografica e alle stagioni dell'anno. Ad esempio, in alcune parti del mondo durante le tempeste di sabbia il cielo può diventare rossastro o marrone. In generale, comunque, la maggior parte delle persone associa il colore del cielo al blu.
+assistant: "The Colors of the Sky: Exploring the Hues and Variations"

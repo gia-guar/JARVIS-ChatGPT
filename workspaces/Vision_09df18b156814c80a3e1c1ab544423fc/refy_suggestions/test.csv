@@ -1,0 +1,32 @@
+,id,doi,title,authors,category,source,url,year,score
+0,http://arxiv.org/abs/2305.19280v1,,"Large language models improve Alzheimer's disease diagnosis using
+  multi-modality data","['Yingjie Feng', 'Jun Wang', 'Xianfeng Gu', 'Xiaoyin Xu', 'Min Zhang']",,arxiv,http://arxiv.org/abs/2305.19280v1,2021,0.13802443355290694
+1,http://arxiv.org/abs/2305.16222v1,,Incomplete Multimodal Learning for Complex Brain Disorders Prediction,"['Reza Shirkavand', 'Liang Zhan', 'Heng Huang', 'Li Shen', 'Paul M. Thompson']",,arxiv,http://arxiv.org/abs/2305.16222v1,2021,0.13695037693570716
+2,http://arxiv.org/abs/2305.10502v1,,"EENED: End-to-End Neural Epilepsy Detection based on Convolutional
+  Transformer","['Chenyu Liu', 'Xinliang Zhou', 'Yang Liu']",,arxiv,http://arxiv.org/abs/2305.10502v1,2021,0.12467641282565606
+3,http://arxiv.org/abs/2305.17235v2,,"COMCAT: Towards Efficient Compression and Customization of
+  Attention-Based Vision Models","['Jinqi Xiao', 'Miao Yin', 'Yu Gong', 'Xiao Zang', 'Jian Ren', 'Bo Yuan']",,arxiv,http://arxiv.org/abs/2305.17235v2,2021,0.12355122484233379
+4,http://arxiv.org/abs/2306.03022v1,,"Interpretable Alzheimer's Disease Classification Via a Contrastive
+  Diffusion Autoencoder","['Ayodeji Ijishakin', 'Ahmed Abdulaal', 'Adamos Hadjivasiliou', 'Sophie Martin', 'James Cole']",,arxiv,http://arxiv.org/abs/2306.03022v1,2021,0.1234453840648734
+5,http://arxiv.org/abs/2305.10060v1,,XAI for Self-supervised Clustering of Wireless Spectrum Activity,"['Ljupcho Milosheski', 'Gregor Cerar', 'Blaž Bertalanič', 'Carolina Fortuna', 'Mihael Mohorčič']",,arxiv,http://arxiv.org/abs/2305.10060v1,2021,0.10784067817323988
+6,http://arxiv.org/abs/2306.05514v1,,"Robust Brain Age Estimation via Regression Models and MRI-derived
+  Features","['Mansoor Ahmed', 'Usama Sardar', 'Sarwan Ali', 'Shafiq Alam', 'Murray Patterson', 'Imdad Ullah Khan']",,arxiv,http://arxiv.org/abs/2306.05514v1,2021,0.1006547027490279
+7,http://arxiv.org/abs/2305.11560v1,,Brain Captioning: Decoding human brain activity into images and text,"['Matteo Ferrante', 'Furkan Ozcelik', 'Tommaso Boccato', 'Rufin VanRullen', 'Nicola Toschi']",,arxiv,http://arxiv.org/abs/2305.11560v1,2021,0.09841263998032185
+8,10.1101/2023.05.27.542592,10.1101/2023.05.27.542592,An Explainable and Robust Deep Learning Approach for Automated Electroencephalography-based Schizophrenia Diagnosis,"Sattiraju, A.; Ellis, C. A.; Miller, R. L.; Calhoun, V. D.",neuroscience,biorxiv,,2023,0.09216368910512815
+9,http://arxiv.org/abs/2306.00294v1,,"Affinity-based Attention in Self-supervised Transformers Predicts
+  Dynamics of Object Grouping in Humans","['Hossein Adeli', 'Seoyoung Ahn', 'Nikolaus Kriegeskorte', 'Gregory Zelinsky']",,arxiv,http://arxiv.org/abs/2306.00294v1,2021,0.0920963415857158
+10,http://arxiv.org/abs/2305.16657v1,,"Higher Order Gauge Equivariant CNNs on Riemannian Manifolds and
+  Applications","['Gianfranco Cortes', 'Yue Yu', 'Robin Chen', 'Melissa Armstrong', 'David Vaillancourt', 'Baba C. Vemuri']",,arxiv,http://arxiv.org/abs/2305.16657v1,2021,0.09058977336216062
+11,http://arxiv.org/abs/2306.00989v1,,Hiera: A Hierarchical Vision Transformer without the Bells-and-Whistles,"['Chaitanya Ryali', 'Yuan-Ting Hu', 'Daniel Bolya', 'Chen Wei', 'Haoqi Fan', 'Po-Yao Huang', 'Vaibhav Aggarwal', 'Arkabandhu Chowdhury', 'Omid Poursaeed', 'Judy Hoffman', 'Jitendra Malik', 'Yanghao Li', 'Christoph Feichtenhofer']",,arxiv,http://arxiv.org/abs/2306.00989v1,2021,0.09058950611280858
+12,10.1101/2023.05.30.542072,10.1101/2023.05.30.542072,The Bergen Breakfast Scanning Club dataset: a deep brain imaging dataset,"Wang, M.-Y.; Korbmacher, M.; Eikeland, R.; Specht, K.",neuroscience,biorxiv,,2023,0.08871953085977524
+13,http://arxiv.org/abs/2306.05745v1,,Two Independent Teachers are Better Role Model,"['Afifa Khaled', 'Ahmed A. Mubarak', 'Kun He']",,arxiv,http://arxiv.org/abs/2306.05745v1,2021,0.08750304025011657
+14,http://arxiv.org/abs/2305.16554v1,,Emergent Agentic Transformer from Chain of Hindsight Experience,"['Hao Liu', 'Pieter Abbeel']",,arxiv,http://arxiv.org/abs/2305.16554v1,2021,0.08687888341024813
+15,10.1101/2023.06.08.544050,10.1101/2023.06.08.544050,3D analysis of dissection photographs with surface scanning and machine learning for quantitative neuropathology,"Gazula, H.; Tregidgo, H.; Billot, B.; Balbastre, Y.; Williams-Ramirez, J.; Herisse, R.; Casamitjana, A.; Melief, E. J.; Latimer, C. S.; Kilgore, M. D.; Montine, M.; Robinson, E.; Blackburn, E.; Marshall, M. S.; Connors, T. R.; Oakley, D. H.; Frosh, M. P.; Van Leemput, K.; Dalca, A. V.; Fischl, B.; Mac Donald, C. L.; Keene, C. D.; Hyman, B.; Iglesias, J. E.",neuroscience,biorxiv,,2023,0.08621946712332713
+16,http://arxiv.org/abs/2306.03834v1,,"MTS2Graph: Interpretable Multivariate Time Series Classification with
+  Temporal Evolving Graphs","['Raneen Younis', 'Abdul Hakmeh', 'Zahra Ahmadi']",,arxiv,http://arxiv.org/abs/2306.03834v1,2021,0.08515588285487911
+17,http://arxiv.org/abs/2306.04655v1,,"Modulation Classification Through Deep Learning Using Resolution
+  Transformed Spectrograms","['Muhammad Waqas', 'Muhammad Ashraf', 'Muhammad Zakwan']",,arxiv,http://arxiv.org/abs/2306.04655v1,2021,0.0847741042619827
+18,http://arxiv.org/abs/2306.03284v1,,"Optimizing Sampling Patterns for Compressed Sensing MRI with Diffusion
+  Generative Models","['Sriram Ravula', 'Brett Levac', 'Ajil Jalal', 'Jonathan I. Tamir', 'Alexandros G. Dimakis']",,arxiv,http://arxiv.org/abs/2306.03284v1,2021,0.08397880868757927
+19,http://arxiv.org/abs/2306.05029v1,,"Multi-level Multiple Instance Learning with Transformer for Whole Slide
+  Image Classification","['Ruijie Zhang', 'Qiaozhe Zhang', 'Yingzhuang Liu', 'Hao Xin', 'Yan Liu', 'Xinggang Wang']",,arxiv,http://arxiv.org/abs/2306.05029v1,2021,0.08395868822917545

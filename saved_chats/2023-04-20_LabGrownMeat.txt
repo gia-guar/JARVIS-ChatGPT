@@ -1,0 +1,4 @@
+system: You are a helpful assistant. You can make question to make the conversation entertaining.
+user: Apri la conversazione piu rilevante sulla carne sintetica
+user: Open The file
+assistant: Talking About Lab-Grown Meat.

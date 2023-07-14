@@ -1,0 +1,5 @@
+system: You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words.
+user: What are the chances of humankind to be dead?
+assistant: It is difficult to predict the exact chances of humankind becoming extinct. However, there are several factors that could potentially threaten the survival of our species. These include natural disasters such as severe weather events, pandemics, and the impact of climate change. Additionally, human activities such as nuclear war, environmental degradation, and the development of dangerous technologies could also contribute to the risk of extinction. While the likelihood of any one of these scenarios occurring is uncertain, it is important to take steps to mitigate these risks and work towards a sustainable future for humanity.
+user: Thank you for watching!
+assistant: You're welcome! If you have any more questions, feel free to ask.

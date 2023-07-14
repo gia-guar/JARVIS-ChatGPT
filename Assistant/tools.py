@@ -7,6 +7,8 @@ from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
 from tqdm import tqdm
 import ast
 
+from . import webui
+
 # import for Translator
 import regex as re
 import langid
@@ -90,13 +92,19 @@ class Translator:
             for j in range(len(langs)):
                 if langs[i]==langs[j]: continue
                 
-                package_to_install = next(
-                    filter(
-                        lambda x: x.from_code == langs[i] and x.to_code == langs[j], available_packages
+                try:
+                    package_to_install = next(
+                        filter(
+                            lambda x: x.from_code == langs[i] and x.to_code == langs[j], available_packages
+                        )
                     )
-                )
+                except:
+                    print(f'failed to add {langs[i]} => {langs[j]}')
                 print(f'downloading Argos Translate Language packages...')
-                argostranslate.package.install_from_path(package_to_install.download())
+                try:
+                    argostranslate.package.install_from_path(package_to_install.download())
+                except:
+                    pass
         
 
     def translate(self, input, to_language, from_language=None):
@@ -157,7 +165,7 @@ class LocalSearchEngine:
     def __init__(self, 
                  embed_model = "text-embedding-ada-002", 
                  tldr_model = "gpt-3.5-turbo",
-                 translator_model = "argostranslators",
+                 translator_model = "argostranslator",
                  translator_languages = ['en','it','es'],
                  default_dir = os.path.realpath(os.path.join(os.getcwd(),'saved_chats')),
                  irrelevancy_th=0.8):
@@ -347,18 +355,52 @@ class LocalSearchEngine:
     def compute_embeds(self, words):
         return openai.Embedding.create(input=words, engine=self.embed_model)['data'][0]['embedding']
 
-    def tldr(self, text, to_language):
-        context =f'tldr in {to_language}:'
-        CHAT = [{"role": "system", "content":context},
-                {"role": "user", "content":f"'{text}'"}]
+    def DaVinci_tldr(self, text):
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=f"{text}\n\nTl;dr",
+            temperature=0,
+            max_tokens=200,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+        return response['choices'][0]["text"]
+    
+    def tldr(self, text, to_language=None, with_model = ''):
+        if self.tldr_model == 'gpt-3.5-turbo'or with_model=='gpt-3.5-turbo':
+            text = text.replace('\n',' ')
+            if to_language != None:
+                context =f'tldr in {to_language}:'
+                CHAT = [{"role": "system", "content":context},
+                        {"role": "user", "content":f"'{text}'"}]
+                
+                response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            temperature=0,
+                            max_tokens=200,
+                            messages=CHAT)
+                
+                try:
+                    return response['choices'][0]['message']['content']
+                except:
+                    pass
 
-        response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    temperature=0,
-                    max_tokens=100,
-                    messages=CHAT)
+            else: 
+                return self.DaVinci_tldr(text)
+            
         
-        return response['choices'][0]['message']['content']
+        if self.tldr_model == 'Vicuna' or with_model=='Vicuna':
+            try:
+                webui.set_text_gen_params(temperature=0.1)
+                result = webui.oobabooga_textgen(prompt=f'Text Summarizer [Question]: summarize the following text: {text}\n[Answer]:')
+                postprocessed = webui.post_process(result)
+                return postprocessed
+            except IndexError as e:
+                return result
+            except Exception as e:
+                print(e)
+                return ''
     
 """
 OnlineSearchEngine:

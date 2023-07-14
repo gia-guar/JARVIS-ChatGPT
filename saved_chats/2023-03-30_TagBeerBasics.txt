@@ -1,0 +1,4 @@
+system: You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words.
+user: What is beer?
+assistant: Beer is an alcoholic beverage made from fermented grains, typically malted barley, hops, yeast, and water. The process involves mashing the grains to extract sugars, boiling the resulting liquid with hops to add bitterness and flavor, and fermenting the mixture with yeast to produce alcohol and carbonation. The specific ingredients and brewing techniques used can vary widely depending on the style of beer being produced, resulting in a wide range of flavors, aromas, and colors. Beer has been enjoyed for thousands of years and is a popular drink around the world.
+assistant: The Basics of Beer: Understanding the Popular Alcoholic Beverage

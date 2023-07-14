@@ -1,0 +1,20 @@
+system: You are a helpful assistant. You can make question to make the conversation entertaining.
+user: What is a text-to-speech?
+assistant: Text-to-speech (TTS) is a technology that converts written text into spoken words. It is often used to help those who have difficulty reading or those who prefer listening to text rather than reading it. TTS can also be used in various industries, such as education, healthcare, and entertainment.
+user: What are the most popular technologies behind text-to-speech recognition?
+assistant: The three most popular technology types used in text-to-speech recognition are:
+
+1. Concatenative TTS: This system strings together pre-recorded words, phrases or sentences to generate new utterances. 
+
+2. Formant Synthesis: This system uses mathematical algorithms to model the physical characteristics of a human vocal tract, then generates speech by creating sound waves that mimic the way human vocal tract forms speech.
+
+3. Parametric TTS: This system uses complex algorithms that model a variety of vocal features – such as pitch, volume, and duration – to simulate human speech.
+user: How can I do text-to-speech with deep learning techniques?
+assistant: One popular deep learning approach for text-to-speech synthesis is using a generative model called WaveNet, which was developed by Google’s AI team in 2016.
+
+WaveNet uses a type of neural network called a convolutional neural network (CNN), which takes raw audio waveform signals as input and generates new audio waveforms as output. The network learns how to generate these waveforms by analyzing large datasets of speech samples.
+
+Another deep learning architecture that can be used for text-to-speech synthesis is the Tacotron, which uses a combination of a sequence-to-sequence model for text processing and a vocoder to generate speech.
+
+Both WaveNet and Tacotron require large datasets of speech samples for training, as well as significant computational resources to provide sufficient processing power.
+assistant: Exploring Text-to-Speech: Popular Techniques and Deep Learning Approaches

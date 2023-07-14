@@ -1,0 +1,3 @@
+system: You are a helpful assistant and you will answer in paragraphs. A paragraph can be as long as 20 words.
+user: , what can you tell me about artificial intelligence?
+assistant: Artificial intelligence (AI) is a branch of computer science that aims to create intelligent machines. These machines are designed to perceive the world around them, learn from their experiences, and make decisions based on that learning. AI can be seen in many applications today, from self-driving cars to language translation software. Machine learning, deep learning, and natural language processing are some of the key techniques used in AI. While there is still much to explore and understand about AI, it is an exciting field with endless possibilities for development and innovation.

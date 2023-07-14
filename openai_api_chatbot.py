@@ -2,6 +2,8 @@ print('### LOADING CREDENTIALS ###')
 from dotenv import load_dotenv
 import os
 
+from Assistant.research_mode import ResearchAssistant
+
 load_dotenv()
 
 if len(os.environ['OPENAI_API_KEY'])==0: 
@@ -34,7 +36,7 @@ if __name__=="__main__":
     print("### SETTING UP ENVIROMENT ###")
     OFFLINE = False
     pygame.mixer.init()
-    
+
     # INITIATE JARVIS
     print('initiating JARVIS voice...')
     jarvis = VirtualAssistant(
@@ -42,14 +44,15 @@ if __name__=="__main__":
         ibm_api      = os.getenv('IBM_API_KEY'),
         ibm_url      = os.getenv('IBM_TTS_SERVICE'),
         elevenlabs_api = os.getenv('ELEVENLABS_API_KEY'),
-        elevenlabs_voice = '',
-        voice_id     = 'jarvis_en',
+        elevenlabs_voice = 'Antoni',
+        voice_id     = {'en':'jarvis_en'},
         whisper_size = 'medium',
         awake_with_keywords=["jarvis"],
         model= "gpt-3.5-turbo",
         embed_model= "text-embedding-ada-002",
         RESPONSE_TIME = 3,
         SLEEP_DELAY = 30,
+        mode = 'CHAT'
         )
 
     while True:
@@ -82,10 +85,11 @@ if __name__=="__main__":
             jarvis.expand_conversation(role="user", content=prompt)
 
             # PROMPT MANAGING [BETA]
-            flag = jarvis.analyze_prompt(prompt)
+            #flag = jarvis.analyze_prompt(prompt)
+            flag = '-1'
 
             # redirect the conversation to an action manager or to the LLM
-            if "1" in flag or "tool" in flag:
+            if (("1" in flag or "tool" in flag) and '-' not in flag):
                 print('(though): action')
                 response = jarvis.use_tools(prompt)
                 response = response
@@ -93,12 +97,14 @@ if __name__=="__main__":
             elif "2" in flag or "respond" in flag:
                 print('(though): response')
                 response = jarvis.get_answer(prompt)
-            
+            elif "-1" in flag:
+                response = jarvis.switch_mode()
             else:
                 print('(though): internet')
-                response = jarvis.web_surf(prompt)
+                response = jarvis.secondary_agent(prompt)
 
             jarvis.expand_conversation(role='assistant', content=response)
-            jarvis.say(response, VoiceIdx=VoiceIdx)
+            pygame.mixer.stop()
+            jarvis.say(response, VoiceIdx=VoiceIdx, IBM=True)
 
             print('\n')

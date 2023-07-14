@@ -57,7 +57,23 @@ def oobabooga_textgen(prompt, params=TEXT_GEN_PARAMS, server=SERVER):
     
     return reply
     
+def post_process(answer):
+    allowed = ['Answer','Outcome','Discussion','Conclusion']
+    answer = answer.split('[Question]')[-1]
 
+    relevant =''
+    for a in allowed:
+        if a in answer:
+            temp = re.split(r'\[|\]', answer)
+            try:
+                relevant += temp[temp.index(a)+1].strip(':')
+            except:
+                print('Failure processing answer')
+                pass
+        
+    print(len(relevant.split()))
+    return relevant
+    
 def parse_conversation(chat):
     linkDetectionRegexStr = "[a-zA-Z0-9]((?i) dot |(?i) dotcom|(?i)dotcom|(?i)dotcom |\.|\. | \.| \. |\,)[a-zA-Z]*((?i) slash |(?i) slash|(?i)slash |(?i)slash|\/|\/ | \/| \/ ).+[a-zA-Z0-9]"
     oobaboogaChatHistory = ""
