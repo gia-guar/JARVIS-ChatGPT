@@ -22,15 +22,20 @@ https://user-images.githubusercontent.com/49094051/231303323-9859e028-33e1-490d-
 <br>
 
 ---
-## APRIL 25th 2023 UPDATE: Jarvis can surf
-By integrating LangChain into the project I am happy to bring some useful capabilities to Jarvis like accessing the web. Different LangChain Agents are now instructed to perform complex tasks like finding files, accessing the web, and extracting content from local resources...<br>
- - **Offline tasks**: the experience is now fully handled by AI so you don't need to guide jarvis in the tasks anymore. Earlier: *'Jarvis, find a file'* triggered the ```find_file``` function and then you had to provide keywords; now you can just say *'How many files are talking about X? Make a summary of one of them...'* and the system makes an action plan to satisfy your requests using different functions. The best part is that the agent in charge of this can realize if a file is relevant to the question by opening it and questioning itself.<br>
- - **Online tasks**: a different agent is instructed to surf the web searching for answers. These agents will answer a question like *'How s the weather like?'* or *'What is the latest news about stocks?'*<br>
+## JULY 14th 2023 UPDATE: Research Mode
+I can finnaly share the first draft of the Research Mode. This modality was thought for people often dealing with research papers. 
+- Switch to research mode by saying *'Switch to Research Mode'*
+- :star: Initialize a new workspace like this: *'Initialize a new workspace about Carbon Fiber Applications in the Spacecraft industry'*. A workspace is a folder that collects and organize the results of the research. This protocol is subdivided into 3 sub-routines:
+   1. Core Paper identification: Use the **Semantic Scholar API** to identify some strongly relevant papers;
+   2. Core Expansion: for each paper, finds some suggestions, then keep only the suggestions that appear to be similar to at least 2 paper;
+   3. Refy Expansion: use the refy suggestion package to enlarge the results;
+- Find suggestions like: *'find suggestions that are sililar to the paper with title ...'*
+- Download: *'download the paper with title ...'*
+- :star: Query your database like: *'what is the author of the paper with title ...?'*  *'what are the experimental conditions set for the paper with title ...?'*
 
-So to summarize: Jarvis is in charge of keeping the conversation ongoing at a higher level and decides to delegate to the agents if needed; the offline agent puts its hands on files and PC stuff; the online agent surfs the web. I found this separation of tasks to work better especially with the main objective being to chat. If you make a conversational agent with tools the result is that it will mostly look for the answer online or among files consuming credit and time.
+PS: This mode is not super stable and needs to be worked on<br>
 
----
-
+*PPS: This project will be discontinued for some time since I'll be working on my thesis until 2024. However there are already so many things that can be improved so I'll be back!*
 ## What you'll need:
 <p align="center"><i>DISCLAIMER:<br> The project might consume your OpenAI credit resulting in undesired billing;<br> I don't take responsibility for any unwanted charges;<br>Consider setting limitations on credit consumption at your OpenAI account; </i> </p> 
 
@@ -144,9 +149,9 @@ When running, you'll see much information being displayed. I'm constantly strivi
 - [x] [4  - 2023] Integrate with Eleven Labs Voices for super expressive voices and outstanding voice cloning;
 - [x] [4  - 2023] Extending voice commands and *Actions* (make a better active assistant)
 - [x] [4  - 2023] Connect the system to the internet
+- [x] [6  - 2023] Connect with paper database
 
 currently working on:
-- [ ] Connect with paper database
 - [ ] Extend doc processing tools
 - [ ] Find a free alternative for LangChain Agents
 
